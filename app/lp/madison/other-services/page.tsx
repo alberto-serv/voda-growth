@@ -19,6 +19,7 @@ import {
 import { business } from "@/lib/business";
 import { formatPrice } from "@/lib/format";
 import { availableServices, isBundleService, type CatalogService } from "@/lib/services-catalog";
+import { RestorationRibbon } from "../restoration-ribbon";
 
 /* ============================================================
    Voda Madison — "Other services" catalog landing (/lp/madison/other-services).
@@ -69,19 +70,6 @@ function fromPrice(s: CatalogService): number {
 const otherServices = availableServices.filter((s) => s.id !== "carpet-cleaning" && !isBundleService(s));
 const bundle = availableServices.find((s) => isBundleService(s));
 
-function Ribbon() {
-  return (
-    <div className="ribbon">
-      <div className="wrap">
-        <span className="rk"><span className="dot" />Restoration</span>
-        <span>Water · Fire · Mold — 24/7</span>
-        <span className="sep">·</span>
-        <a href="/?emergency=1">Get emergency help →</a>
-      </div>
-    </div>
-  );
-}
-
 function Header() {
   return (
     <header className="hdr">
@@ -97,7 +85,7 @@ function Header() {
 export default function OtherServicesPage() {
   return (
     <div className="voda-lp">
-      <Ribbon />
+      <RestorationRibbon />
       <Header />
 
       {/* Hero — compact, since this is a catalog rather than a single offer */}

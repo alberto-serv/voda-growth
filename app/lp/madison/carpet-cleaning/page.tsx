@@ -2,6 +2,7 @@
 import "../lp-styles.css";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { RestorationRibbon } from "../restoration-ribbon";
 import { business } from "@/lib/business";
 import { formatPrice } from "@/lib/format";
 import {
@@ -139,20 +140,8 @@ function scrollToId(id: string) {
   if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 64, behavior: "smooth" });
 }
 
-/* ===== M0 restoration ribbon ===== */
-function Ribbon() {
-  if (!flags.show_restoration_ribbon) return null;
-  return (
-    <div className="ribbon">
-      <div className="wrap">
-        <span className="rk"><span className="dot" />{brand.restoration.label}</span>
-        <span>{brand.restoration.line}</span>
-        <span className="sep">·</span>
-        <a href={brand.restoration.href}>Get emergency help →</a>
-      </div>
-    </div>
-  );
-}
+/* ===== M0 restoration ribbon + on-page emergency popup =====
+   Shared with the other-services LP — see ../restoration-ribbon. */
 
 /* ===== M1 micro-header ===== */
 function Header() {
@@ -507,7 +496,7 @@ function LpFooter() {
 export default function LandingPage() {
   return (
     <div className="voda-lp">
-      <Ribbon />
+      <RestorationRibbon />
       <Header />
       <Hero />
       <Configurator />
