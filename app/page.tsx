@@ -1269,6 +1269,19 @@ export default function ServicesPage() {
     openConfig("emergency");
   };
 
+  // Deep link into the emergency flow: `/?emergency=1` (or a specific type,
+  // `?emergency=Water|Fire|Mold|Storm`) opens the Emergency & Restoration card
+  // on load. Used by the /landing restoration ribbon so "Get emergency help"
+  // lands the visitor straight on the emergency/restoration flow.
+  useEffect(() => {
+    const val = new URLSearchParams(window.location.search).get("emergency");
+    if (!val) return;
+    const types: EmergencyDamage[] = ["Water", "Fire", "Mold", "Storm"];
+    const match = types.find((t) => t.toLowerCase() === val.toLowerCase());
+    openEmergency(match);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Emergency / restoration uses a no-payment checkout: stash the damage type
   // and a skipPayment flag, then drop the visitor into the normal checkout flow
   // (which collects address, phone, and scheduling) but skips the payment step.

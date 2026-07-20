@@ -1,5 +1,5 @@
 "use client";
-import "./lp-styles.css";
+import "../lp-styles.css";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { business } from "@/lib/business";
@@ -30,7 +30,7 @@ const loc = {
   phone: "(608) 398-8632",
   phoneRaw: business.businessPhone,
   email: business.email,
-  gbpUrl: "#", // NEEDS-SOURCING: Google Business Profile link
+  gbpUrl: "https://www.google.com/searchviewer/10?svid=CAwSHRIbCgNwdnESFENnMHZaeTh4TVd4NWVubDJOWFEzGAo&sa=X&ved=2ahUKEwiwgs3L1eGVAxURJzQIHZEGEGgQ_74PegoIAggACAAIDBAC",
   reviewRating: 4.9,
   reviewCount: 218,
   sinceYear: 2019, // NEEDS-SOURCING: confirm at launch
@@ -44,7 +44,7 @@ const brand = {
   name: business.brandName,
   ctaLabel: "See available times",
   microcopy: "Book in 60 seconds · No payment until service day · Free rescheduling.",
-  restoration: { label: "Restoration", line: "Water · Fire · Mold — 24/7", href: "#" },
+  restoration: { label: "Restoration", line: "Water · Fire · Mold — 24/7", href: "/?emergency=1" },
   guarantee: {
     title: "The Voda Clean Guarantee",
     body: "If you're not fully happy with the results, we'll re-clean the area free. No arguments, no fine print — that's our promise on every job.",
@@ -324,8 +324,8 @@ function Configurator() {
           </div>
         </div>
 
-        {/* M3b escape hatch — the full multi-service estimate */}
-        <div className="escape"><a href="/estimate/services">Need a different service? →</a></div>
+        {/* M3b escape hatch — the other Voda services in Madison */}
+        <div className="escape"><a href="/lp/madison/other-services">Need a different service? →</a></div>
       </div>
     </section>
   );
@@ -383,7 +383,7 @@ function LocalProof() {
         <div className="local-grid">
           <div className="local-photo">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/second-floor-cleaning.jpeg" alt="Voda crew cleaning a Madison home" />
+            <img src="/voda-trucks.webp" alt="Voda Cleaning &amp; Restoration branded vans parked at a Madison home" />
           </div>
           <div>
             <div className="sec-kicker">Proudly local</div>
@@ -392,7 +392,7 @@ function LocalProof() {
             <div className="area-list">
               {loc.serviceArea.map((a) => <span className="area-chip" key={a}><Icon name="pin" size={13} />{a}</span>)}
             </div>
-            <a className="gbp-link" href={loc.gbpUrl}><Icon name="external" size={15} />See our Google Business Profile &amp; reviews</a>
+            <a className="gbp-link" href={loc.gbpUrl} target="_blank" rel="noopener noreferrer"><Icon name="external" size={15} />See our Google Business Profile &amp; reviews</a>
           </div>
         </div>
       </div>
