@@ -1,0 +1,10 @@
+node_modules
+.next
+tsconfig.tsbuildinfo
+
+# Local MCP tooling
+.mcp.json
+.playwright-mcp/
+
+# Design handoff / reference material (not shipped)
+design-reference/

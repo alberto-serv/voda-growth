@@ -1,0 +1,458 @@
+/* =============================================================
+   Voda — services6: the services5 "refined light" booking design, in a single
+   full-width booking column.
+   Ported from the Claude Design project (Voda - Conversion,
+   Approach A). Every selector is scoped under .svc6 so it never
+   leaks into the rest of the app. Fonts come from the app's
+   next/font variables (--font-outfit / --font-barlow).
+   ============================================================= */
+
+.svc6 {
+  /* palette */
+  --navy: #152644;
+  --navy-2: #1d3354;
+  --navy-foot: #192a46;
+  --cyan: #03d9e5;
+  --cyan-deep: #06b3bd;
+  --ink: #152644;
+  --muted: #5b6675;
+  --faint: #8b97a6;
+  --bg: #ffffff;
+  --bg-soft: #f4f6f9;
+  --line: #e3e8ef;
+  --line-2: #eceff4;
+  --green: #1f9d62;
+  --green-bg: #e8f6ee;
+  --amber: #e08a1e;
+  --red: #e2453a;
+  --radius: 8px;
+  --radius-lg: 14px;
+  --shadow-sm: 0 1px 2px rgba(21, 38, 68, 0.05);
+  --shadow: 0 1px 2px rgba(21, 38, 68, 0.05), 0 8px 24px rgba(21, 38, 68, 0.07);
+  --shadow-lg: 0 2px 6px rgba(21, 38, 68, 0.06), 0 22px 50px rgba(21, 38, 68, 0.13);
+  --shadow-cyan: 0 8px 22px rgba(3, 217, 229, 0.3);
+
+  --font-head: var(--font-outfit), "Outfit", system-ui, sans-serif;
+  --font-body: var(--font-barlow), "Barlow", system-ui, sans-serif;
+
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-soft);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.svc6 h1,
+.svc6 h2,
+.svc6 h3,
+.svc6 h4 {
+  margin: 0;
+  color: var(--navy);
+  letter-spacing: -0.01em;
+  line-height: 1.12;
+  font-family: var(--font-head);
+}
+.svc6 p { margin: 0; }
+.svc6 a { color: inherit; text-decoration: none; }
+.svc6 button { font-family: var(--font-head); cursor: pointer; border: 0; background: none; }
+.svc6 :focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+/* ---------- buttons ---------- */
+.svc6 .btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  white-space: nowrap; border-radius: var(--radius); font-weight: 600; font-size: 15px;
+  transition: all 0.16s ease; line-height: 1;
+}
+.svc6 .btn-cta { background: var(--cyan); color: var(--navy); padding: 0 22px; height: 48px; box-shadow: var(--shadow-cyan); }
+.svc6 .btn-cta:hover { filter: brightness(1.04); transform: translateY(-1px); }
+.svc6 .btn-cta:disabled { opacity: 0.45; box-shadow: none; transform: none; cursor: not-allowed; filter: none; }
+.svc6 .btn-navy { background: var(--navy); color: #fff; padding: 0 22px; height: 48px; }
+.svc6 .btn-navy:hover { background: var(--navy-2); }
+.svc6 .btn-ghost { background: #fff; color: var(--navy); border: 1.5px solid var(--line); padding: 0 20px; height: 48px; }
+.svc6 .btn-ghost:hover { border-color: var(--navy); background: var(--bg-soft); }
+.svc6 .btn-lg { height: 54px; font-size: 16.5px; padding: 0 28px; }
+.svc6 .btn-block { width: 100%; }
+
+/* ---------- shell ---------- */
+.svc6 .topbar {
+  position: sticky; top: 0; z-index: 40; background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px); border-bottom: 1px solid var(--line);
+}
+/* The bar background spans full width, but its content sits in the same
+   `container mx-auto px-4` box as the footer (classes added in the JSX) so the
+   logo and utilities line up edge-for-edge with the footer's content. Only the
+   flex layout lives here — max-width/centering/padding come from Tailwind. */
+.svc6 .topbar-inner { height: 64px; display: flex; align-items: center; gap: 20px; }
+/* The logo SVG carries a small tagline under the wordmark, so its "voda"
+   wordmark sits in the lower ~63% of the box. Nudge up ~4px so the wordmark —
+   not the box — optically centers with the step pill beside it. */
+.svc6 .topbar .logo { height: 30px; width: auto; transform: translateY(-4px); }
+.svc6 .step-pill {
+  font-family: var(--font-head); font-weight: 600; font-size: 12px; letter-spacing: 0.04em; color: var(--muted);
+  background: var(--bg-soft); border: 1px solid var(--line); padding: 5px 12px; border-radius: 999px;
+}
+.svc6 .topbar .util { margin-left: auto; display: none; align-items: center; gap: 16px; }
+
+/* Earliest-appointment pill: a rounded, soft-bordered container holding the
+   calendar icon, the date stack, and a white "Skip to schedule" button. */
+.svc6 .appt-pill {
+  display: flex; align-items: center; gap: 12px; flex: none;
+  background: var(--bg-soft); border: 1px solid var(--line);
+  border-radius: 999px; padding: 6px 6px 6px 12px; box-shadow: var(--shadow-sm);
+}
+.svc6 .appt-ic {
+  display: flex; align-items: center; justify-content: center; flex: none;
+  width: 32px; height: 32px; border-radius: var(--radius);
+  background: var(--green-bg); color: var(--green);
+}
+.svc6 .appt-txt { display: flex; flex-direction: column; }
+.svc6 .appt-lbl {
+  font-family: var(--font-head); font-weight: 700; font-size: 9px; line-height: 1;
+  text-transform: uppercase; letter-spacing: 0.08em; color: var(--faint);
+}
+.svc6 .appt-date {
+  display: flex; align-items: center; gap: 5px; margin-top: 4px; white-space: nowrap;
+  font-family: var(--font-head); font-weight: 700; font-size: 13px; line-height: 1; color: var(--navy);
+}
+.svc6 .appt-dot { width: 6px; height: 6px; border-radius: 999px; background: var(--green); flex: none; }
+.svc6 .appt-cta {
+  display: inline-flex; align-items: center; gap: 6px; flex: none; white-space: nowrap;
+  background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px;
+  font-family: var(--font-head); font-weight: 700; font-size: 13.5px; color: var(--navy);
+  box-shadow: var(--shadow-sm); transition: border-color 0.15s, color 0.15s;
+}
+.svc6 .appt-cta svg { color: var(--cyan-deep); }
+.svc6 .appt-cta:hover { border-color: var(--cyan-deep); color: var(--cyan-deep); }
+
+/* Vertical divider between the pill and the commercial link. */
+.svc6 .util-div { width: 1px; height: 26px; background: var(--line); flex: none; }
+
+/* Commercial link — icon + bold navy text. */
+.svc6 .commercial-link {
+  display: inline-flex; align-items: center; gap: 7px; flex: none; white-space: nowrap;
+  font-family: var(--font-head); font-weight: 700; font-size: 14px; color: var(--navy);
+  transition: color 0.15s ease;
+}
+.svc6 .commercial-link svg { color: var(--faint); transition: color 0.15s ease; }
+.svc6 .commercial-link:hover { color: var(--cyan-deep); }
+.svc6 .commercial-link:hover svg { color: var(--cyan-deep); }
+
+@media (min-width: 1024px) {
+  .svc6 .topbar .util { display: flex; }
+}
+
+.svc6 .main { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.svc6 .conv-wrap { width: 100%; max-width: 900px; margin: 0 auto; padding: 26px 24px 44px; min-width: 0; }
+
+/* ---------- booking column ----------
+   One full-width column: the services5 design, unaltered. `container` is here so
+   the grids inside the column key off the column's own width. */
+.svc6 .pane {
+  display: flex; flex-direction: column; flex: 1; min-width: 0;
+  container: pane / inline-size;
+}
+
+/* ---------- remediation card ----------
+   A white, red-bordered panel: red icon disc, title + damage line, and "Book" as
+   plain bold text on the right. The whole card is the button. */
+/* Mirror .conv-wrap's box (max-width + centered + 24px side padding) so the card
+   lines up edge-for-edge with the hero card below it. */
+.svc6 .emg-strip { width: 100%; max-width: 900px; margin: 0 auto; padding: 16px 24px 0; }
+/* Sized so the card is ~62px tall — matching the thin ribbon it replaced
+   (40px anchor + 9px padding + 2px border, both sides). */
+.svc6 .emg-card {
+  width: 100%; text-align: left;
+  display: flex; align-items: center; gap: 16px;
+  background: #fff; border: 1px solid var(--line); border-radius: var(--radius-lg);
+  padding: 10px 20px; transition: border-color 0.15s, box-shadow 0.15s;
+}
+.svc6 .emg-card:hover { border-color: var(--navy); box-shadow: 0 6px 18px rgba(21, 38, 68, 0.08); }
+.svc6 .emg-ic {
+  display: flex; align-items: center; justify-content: center; flex: none;
+  width: 40px; height: 40px; border-radius: 999px; background: var(--red); color: #fff;
+}
+.svc6 .emg-txt { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+/* Tight line-heights keep the two-line stack under the 40px icon, so the card
+   holds the ~62px ribbon height rather than growing to fit the text. */
+.svc6 .emg-txt b { font-family: var(--font-head); font-weight: 700; font-size: 17px; line-height: 1.15; color: var(--navy); }
+.svc6 .emg-sub { font-size: 14px; line-height: 1.2; color: var(--muted); margin-top: 1px; }
+.svc6 .emg-book {
+  flex: none; font-family: var(--font-head); font-weight: 700; font-size: 19px; color: var(--navy);
+  transition: color 0.15s;
+}
+.svc6 .emg-card:hover .emg-book { color: var(--navy); }
+@container pane (max-width: 540px) {
+  .svc6 .emg-strip { padding: 12px 16px 0; }
+  .svc6 .emg-card { gap: 12px; padding: 8px 14px; }
+  .svc6 .emg-ic { width: 38px; height: 38px; }
+  .svc6 .emg-txt b { font-size: 15.5px; }
+  .svc6 .emg-sub { font-size: 12.5px; }
+  .svc6 .emg-book { font-size: 16px; }
+}
+
+/* ---------- page head ---------- */
+.svc6 .conv-head { display: flex; align-items: center; justify-content: space-between; gap: 32px; margin: 8px 0 20px; }
+.svc6 .head-text { min-width: 0; }
+.svc6 .conv-head h1 { font-size: 32px; font-weight: 800; line-height: 1.1; }
+.svc6 .conv-head p { color: var(--muted); font-size: 16px; margin-top: 8px; max-width: 52ch; }
+
+/* ---------- hero ---------- */
+.svc6 .hero { position: relative; background: #fff; border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); overflow: hidden; }
+.svc6 .hero-band { padding: 22px 24px 4px; }
+.svc6 .badge-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.svc6 .badge-most {
+  display: inline-flex; align-items: center; gap: 7px; font-family: var(--font-head); font-weight: 700; font-size: 11px;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--navy); background: var(--cyan); padding: 5px 11px; border-radius: 999px;
+}
+.svc6 .hero-title { font-size: 25px; font-weight: 800; letter-spacing: -0.01em; }
+.svc6 .hero-desc { color: var(--muted); font-size: 14.5px; margin-top: 8px; }
+.svc6 .hero-desc .sqft { color: var(--faint); }
+
+/* Pricing summary card: room stepper on one side, live total + rate on the
+   other. Desktop = row; mobile = stacked with a divider (below). */
+.svc6 .price-eq-wrap {
+  margin: 4px 24px 0; padding: 22px 24px;
+  background: var(--bg-soft); border: 1px solid var(--line-2); border-radius: var(--radius-lg);
+}
+.svc6 .price-card { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.svc6 .pc-rooms { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.svc6 .pc-label {
+  font-family: var(--font-head); font-weight: 700; font-size: 12px;
+  text-transform: uppercase; letter-spacing: 0.09em; color: var(--faint);
+}
+.svc6 .pc-summary { display: flex; flex-direction: column; align-items: flex-end; text-align: right; }
+.svc6 .pc-total { font-family: var(--font-head); font-weight: 800; font-size: 44px; letter-spacing: -0.02em; color: var(--navy); line-height: 1; }
+.svc6 .pc-rate { font-family: var(--font-head); font-size: 15px; color: var(--faint); margin-top: 7px; white-space: nowrap; }
+.svc6 .pc-rate b { font-weight: 700; color: var(--navy); }
+.svc6 .pc-extras { color: var(--faint); font-weight: 500; }
+
+.svc6 .hero-body { padding: 18px 24px 24px; display: flex; flex-direction: column; gap: 14px; }
+
+/* stepper */
+.svc6 .stepper {
+  display: inline-flex; align-items: center; border: 1px solid var(--line-2);
+  border-radius: 14px; overflow: hidden; background: #fff; flex: none;
+  box-shadow: 0 1px 2px rgba(21, 38, 68, 0.05);
+}
+.svc6 .stepper button { width: 48px; height: 48px; color: var(--navy); font-size: 22px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+.svc6 .stepper button:hover:not(:disabled) { background: var(--bg-soft); }
+.svc6 .stepper button:disabled { color: var(--faint); cursor: not-allowed; }
+.svc6 .stepper .val { min-width: 94px; text-align: center; font-family: var(--font-head); font-weight: 700; font-size: 15.5px; color: var(--navy); }
+
+/* option toggle rows (vacant rooms + add-ons) */
+.svc6 .opt-row {
+  display: flex; align-items: center; gap: 13px; text-align: left; width: 100%; background: #fff;
+  border: 1.5px solid var(--line); border-radius: 12px; padding: 13px 15px; transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+.svc6 .opt-row:hover { border-color: var(--cyan-deep); }
+.svc6 .opt-row.on { border-color: var(--cyan); box-shadow: 0 0 0 1.5px var(--cyan); background: #f2fdfe; }
+.svc6 .opt-box { width: 22px; height: 22px; border-radius: 7px; border: 2px solid var(--line); flex: none; display: flex; align-items: center; justify-content: center; color: #fff; transition: all 0.15s; }
+.svc6 .opt-row.on .opt-box { background: var(--navy); border-color: var(--navy); color: #fff; }
+.svc6 .opt-main { flex: 1; min-width: 0; }
+.svc6 .opt-main .t { display: block; font-family: var(--font-head); font-weight: 700; font-size: 14.5px; color: var(--navy); }
+.svc6 .opt-main .s { display: block; font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+.svc6 .opt-price { font-family: var(--font-head); font-weight: 700; font-size: 14.5px; color: var(--navy); flex: none; white-space: nowrap; }
+.svc6 .opt-price .per { font-weight: 500; font-size: 12px; color: var(--muted); }
+/* A saving that comes off the quote rather than adding to it (vacant rooms). */
+.svc6 .opt-price.disc { color: var(--green); }
+.svc6 .opt-price.note { color: var(--faint); font-weight: 600; font-size: 12px; }
+.svc6 .upgrades { display: flex; flex-direction: column; gap: 10px; }
+/* Inline info icon + expandable explainer copy on a carpet add-on row. */
+.svc6 .opt-main .t { display: inline-flex; align-items: center; gap: 6px; }
+.svc6 .opt-info {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  color: var(--muted); cursor: pointer; transition: color 0.15s;
+}
+.svc6 .opt-info:hover, .svc6 .opt-row .opt-info[aria-expanded="true"] { color: var(--cyan-deep); }
+.svc6 .opt-detail {
+  margin: 8px 2px 2px; font-size: 12.5px; line-height: 1.45; color: var(--muted);
+}
+
+.svc6 .hero-book { width: 100%; height: 52px; font-size: 16px; margin-top: 2px; }
+.svc6 .hero-added {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 2px;
+  background: var(--green-bg); border: 1px solid #cde8d9; border-radius: 12px; padding: 12px 14px 12px 16px;
+}
+.svc6 .ha-txt { display: inline-flex; align-items: center; gap: 9px; font-family: var(--font-head); font-weight: 700; font-size: 15px; color: #1f7a4d; }
+.svc6 .ha-txt svg { color: var(--green); flex: none; }
+.svc6 .ha-remove { font-family: var(--font-head); font-weight: 700; font-size: 13.5px; color: var(--muted); padding: 7px 14px; border-radius: 9px; border: 1.5px solid var(--line); background: #fff; transition: color 0.15s, border-color 0.15s; flex: none; }
+.svc6 .ha-remove:hover { color: var(--red); border-color: #f3c9c6; }
+
+/* ---------- add-ons ---------- */
+.svc6 .addons { margin-top: 30px; min-width: 0; }
+.svc6 .addons-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px; }
+.svc6 .addons-head h3 { font-family: var(--font-head); font-weight: 700; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--navy); }
+.svc6 .addons-head span { font-size: 13px; color: var(--muted); }
+.svc6 .addons-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; min-width: 0; max-width: 100%; }
+.svc6 .addon-card { position: relative; text-align: left; background: #fff; border: 1.5px solid var(--line); border-radius: 14px; padding: 16px; transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s; }
+.svc6 .addon-card:hover { border-color: var(--cyan-deep); transform: translateY(-2px); box-shadow: var(--shadow); }
+.svc6 .addon-card.on { border-color: var(--cyan); box-shadow: 0 0 0 1.5px var(--cyan); }
+.svc6 .addon-ic { width: 42px; height: 42px; border-radius: 11px; background: var(--bg-soft); color: var(--cyan-deep); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+.svc6 .addon-card.on .addon-ic { background: var(--cyan); color: var(--navy); }
+.svc6 .addon-card .a-name { font-family: var(--font-head); font-weight: 700; font-size: 15px; color: var(--navy); }
+.svc6 .addon-card .a-desc { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+.svc6 .addon-card .a-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
+.svc6 .addon-card .a-price { font-family: var(--font-head); font-weight: 700; font-size: 15px; color: var(--navy); }
+.svc6 .addon-card .a-price .f { font-weight: 500; font-size: 11.5px; color: var(--faint); }
+.svc6 .a-add { font-family: var(--font-head); font-weight: 700; font-size: 12.5px; color: var(--cyan-deep); display: inline-flex; align-items: center; gap: 5px; }
+.svc6 .addon-card.on .a-add { color: var(--green); }
+.svc6 .a-check { position: absolute; top: 14px; right: 14px; width: 24px; height: 24px; border-radius: 50%; background: var(--cyan); color: var(--navy); display: none; align-items: center; justify-content: center; }
+.svc6 .addon-card.on .a-check { display: flex; }
+@media (max-width: 540px) { .svc6 .addons-grid { grid-template-columns: 1fr; } }
+
+/* ---------- all other services (dropdown) ---------- */
+.svc6 .more { margin-top: 22px; }
+.svc6 .more-toggle {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 14px; background: #fff;
+  border: 1.5px solid var(--line); border-radius: 14px; padding: 15px 18px; text-align: left; transition: border-color 0.15s, box-shadow 0.15s;
+}
+.svc6 .more-toggle:hover { border-color: var(--cyan-deep); box-shadow: var(--shadow-sm); }
+.svc6 .more-toggle.open { border-color: var(--line); border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.svc6 .mt-left { display: flex; align-items: center; gap: 13px; min-width: 0; }
+.svc6 .mt-ic { width: 40px; height: 40px; border-radius: 11px; background: var(--bg-soft); color: var(--navy); display: flex; align-items: center; justify-content: center; flex: none; }
+.svc6 .mt-txt { display: flex; flex-direction: column; min-width: 0; }
+.svc6 .mt-t { font-family: var(--font-head); font-weight: 700; font-size: 15.5px; color: var(--navy); }
+.svc6 .mt-s { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+.svc6 .mt-right { display: flex; align-items: center; gap: 12px; flex: none; }
+.svc6 .mt-badge { font-family: var(--font-head); font-weight: 700; font-size: 11.5px; color: var(--green); background: var(--green-bg); padding: 4px 9px; border-radius: 999px; white-space: nowrap; }
+.svc6 .mt-count { font-family: var(--font-head); font-weight: 700; font-size: 12.5px; color: var(--muted); background: var(--bg-soft); min-width: 24px; height: 24px; padding: 0 7px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; }
+.svc6 .mt-chev { color: var(--faint); transition: transform 0.2s; }
+.svc6 .more-toggle.open .mt-chev { transform: rotate(180deg); }
+.svc6 .more-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 16px; margin-top: -1.5px;
+  background: var(--bg-soft); border: 1.5px solid var(--line); border-top: 0; border-bottom-left-radius: 14px; border-bottom-right-radius: 14px;
+}
+.svc6 .svc-row { display: flex; align-items: flex-start; gap: 13px; text-align: left; background: #fff; border: 1.5px solid var(--line); border-radius: 12px; padding: 14px; transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s; }
+.svc6 .svc-row:hover { border-color: var(--cyan-deep); transform: translateY(-2px); box-shadow: var(--shadow); }
+.svc6 .svc-row.on { border-color: var(--cyan); box-shadow: 0 0 0 1.5px var(--cyan); }
+.svc6 .svc-ic { width: 40px; height: 40px; border-radius: 11px; background: var(--bg-soft); color: var(--cyan-deep); display: flex; align-items: center; justify-content: center; flex: none; }
+.svc6 .svc-row.on .svc-ic { background: var(--cyan); color: var(--navy); }
+.svc6 .svc-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.svc6 .svc-name { font-family: var(--font-head); font-weight: 700; font-size: 14.5px; color: var(--navy); }
+.svc6 .svc-desc { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+.svc6 .svc-cadence { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-family: var(--font-head); font-weight: 600; color: var(--faint); margin-top: 7px; }
+.svc6 .svc-cadence svg { color: var(--cyan-deep); }
+.svc6 .svc-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex: none; }
+.svc6 .svc-price { font-family: var(--font-head); font-weight: 700; font-size: 14.5px; color: var(--navy); white-space: nowrap; }
+.svc6 .svc-price .f { font-weight: 500; font-size: 11px; color: var(--faint); }
+.svc6 .svc-add { font-family: var(--font-head); font-weight: 700; font-size: 12.5px; color: var(--cyan-deep); display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.svc6 .svc-row.on .svc-add { color: var(--green); }
+@media (max-width: 540px) { .svc6 .more-grid { grid-template-columns: 1fr; } }
+
+/* ---------- sticky bottom summary bar ---------- */
+.svc6 .sbar { position: sticky; bottom: 0; z-index: 45; background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(10px); border-top: 1px solid var(--line); box-shadow: 0 -8px 26px rgba(21, 38, 68, 0.09); }
+.svc6 .sbar-track { height: 3px; background: var(--line-2); }
+.svc6 .sbar-track .fill { height: 100%; background: var(--cyan); transition: width 0.3s ease; }
+.svc6 .sbar-inner { max-width: 900px; margin: 0 auto; padding: 12px 24px; display: flex; align-items: center; gap: 16px; }
+.svc6 .sbar-total { min-width: 0; position: relative; }
+.svc6 .sbar-total .lbl { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--muted); font-family: var(--font-head); font-weight: 600; }
+.svc6 .sbar-total .lbl .chev { transition: transform 0.2s; }
+.svc6 .sbar-total.open .lbl .chev { transform: rotate(180deg); }
+.svc6 .sbar-total .amt-row { display: flex; align-items: baseline; gap: 10px; }
+.svc6 .sbar-total .amt { font-family: var(--font-head); font-weight: 800; font-size: 24px; color: var(--navy); line-height: 1.1; }
+.svc6 .sbar-total .min { font-size: 11.5px; font-family: var(--font-head); font-weight: 700; }
+.svc6 .sbar-total .min.met { color: var(--green); }
+.svc6 .sbar-total .min.miss { color: var(--amber); }
+.svc6 .sbar-cta { flex: 1; max-width: 340px; margin-left: auto; height: 54px; }
+/* Two lines on the CTA: the action, and the soonest date it can happen. */
+.svc6 .cta-stack { display: flex; flex-direction: column; align-items: center; gap: 3px; line-height: 1; }
+.svc6 .cta-main { font-family: var(--font-head); font-weight: 700; font-size: 15.5px; }
+.svc6 .cta-date { font-size: 12px; font-weight: 600; color: #0b5e63; }
+
+.svc6 .sbar-pop { position: absolute; left: 0; bottom: calc(100% + 12px); width: 320px; max-width: calc(100vw - 44px); background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow-lg); padding: 16px 18px; }
+.svc6 .sbar-pop h4 { font-family: var(--font-head); font-weight: 700; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--navy); margin-bottom: 10px; }
+.svc6 .sbar-pop .li { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line-2); }
+.svc6 .sbar-pop .li:last-of-type { border-bottom: 0; }
+.svc6 .sbar-pop .li .n { display: block; font-family: var(--font-head); font-weight: 600; font-size: 13.5px; color: var(--navy); }
+.svc6 .sbar-pop .li .d { display: block; font-size: 12px; color: var(--muted); }
+.svc6 .sbar-pop .li .p { font-family: var(--font-head); font-weight: 700; font-size: 13.5px; color: var(--navy); white-space: nowrap; }
+.svc6 .sbar-pop .tot { display: flex; justify-content: space-between; padding-top: 11px; margin-top: 4px; border-top: 1.5px solid var(--line); }
+.svc6 .sbar-pop .tot .n { font-family: var(--font-head); font-weight: 700; font-size: 15px; }
+.svc6 .sbar-pop .tot .p { font-family: var(--font-head); font-weight: 800; font-size: 18px; color: var(--navy); }
+
+.svc6 .fade-in { animation: svc6fade 0.35s ease both; }
+@keyframes svc6fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* ---------- mobile refinements ---------- */
+@media (max-width: 600px) {
+  .svc6 .topbar-inner { padding: 0 16px; gap: 12px; }
+  .svc6 .conv-wrap { padding: 20px 16px 28px; }
+  .svc6 .emg-inner { padding: 10px 16px; }
+  .svc6 .emg-call { height: 38px; padding: 0 15px; }
+  .svc6 .conv-head { flex-direction: column; align-items: flex-start; gap: 14px; margin: 4px 0 18px; }
+  .svc6 .conv-head h1 { font-size: 25px; }
+  .svc6 .conv-head p { font-size: 15px; }
+  .svc6 .hero-band { padding: 18px 18px 4px; }
+  .svc6 .hero-title { font-size: 21px; }
+  /* Match the horizontal inset of the vacant/add-on cards in .hero-body. */
+  .svc6 .price-eq-wrap { margin: 4px 18px 0; padding: 18px 18px; }
+  /* Stack on phones: label + full-width stepper, a divider, then rate + total. */
+  .svc6 .price-card { flex-direction: column; align-items: stretch; gap: 16px; }
+  .svc6 .stepper { width: 100%; }
+  .svc6 .stepper .val { flex: 1; }
+  .svc6 .pc-summary {
+    flex-direction: row-reverse; align-items: baseline; justify-content: space-between;
+    border-top: 1px solid var(--line-2); padding-top: 16px;
+  }
+  .svc6 .pc-total { font-size: 40px; }
+  .svc6 .pc-rate { margin-top: 0; }
+  .svc6 .hero-body { padding: 16px 18px 20px; }
+  .svc6 .sbar-inner { padding: 11px 16px; gap: 12px; }
+  .svc6 .sbar-cta { max-width: none; padding: 0 16px; }
+  .svc6 .sbar-total .amt { font-size: 21px; }
+}
+
+/* ---------- column-relative reflow (services6) ----------
+   Must come last: these override the two-up grid defaults above at equal
+   specificity. The booking column is half the viewport, so its breakpoints key
+   off the column width, not the window — on a 1024px screen the pane is ~512px
+   and the two-up grids would otherwise be squeezed into it. */
+@container pane (max-width: 620px) {
+  .svc6 .addons-grid { grid-template-columns: 1fr; }
+  .svc6 .more-grid { grid-template-columns: 1fr; }
+}
+@container pane (max-width: 540px) {
+  .svc6 .conv-head h1 { font-size: 27px; }
+  /* Narrow pane mirrors the phone layout: stacked with a divider. */
+  .svc6 .price-card { flex-direction: column; align-items: stretch; gap: 16px; }
+  .svc6 .stepper { width: 100%; }
+  .svc6 .stepper .val { flex: 1; }
+  .svc6 .pc-summary {
+    flex-direction: row-reverse; align-items: baseline; justify-content: space-between;
+    border-top: 1px solid var(--line-2); padding-top: 16px;
+  }
+  .svc6 .pc-total { font-size: 40px; }
+  .svc6 .pc-rate { margin-top: 0; }
+}
+
+/* ---------- secondary paths (services6) ----------
+   Skip-to-book and commercial. Both bypass service selection, so they read as
+   quiet text links under the menu — never as cards competing with the hero. */
+.svc6 .alt-paths {
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+  gap: 10px 16px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line-2);
+}
+.svc6 .alt-link {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--font-body); font-size: 13px; color: var(--muted);
+  transition: color 0.15s ease;
+}
+.svc6 .alt-link svg { color: var(--faint); transition: color 0.15s ease; }
+.svc6 .alt-link b { font-family: var(--font-head); font-weight: 700; color: var(--navy); border-bottom: 1px solid var(--line); }
+.svc6 .alt-link:hover { color: var(--navy); }
+.svc6 .alt-link:hover svg { color: var(--cyan-deep); }
+.svc6 .alt-link:hover b { border-bottom-color: var(--cyan-deep); }
+.svc6 .alt-sep { width: 1px; height: 16px; background: var(--line); }
+@container pane (max-width: 560px) {
+  .svc6 .alt-paths { flex-direction: column; gap: 12px; }
+  .svc6 .alt-sep { display: none; }
+}
+@media (min-width: 1024px) {
+  /* Desktop carries both paths in the topbar, so the in-column row would just
+     say the same thing twice. */
+  .svc6 .alt-paths { display: none; }
+}
