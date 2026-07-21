@@ -484,14 +484,19 @@ export default function LandingPageRevision1() {
 
   return (
     <div className="rev1-root">
-      {/* Shared book-page restoration strip. onBook opens the on-page modal. */}
+      {/* Navbar first. */}
+      <div className="voda-lp rev1">
+        <Header scrolled={scrolled} onBook={book} />
+      </div>
+
+      {/* Shared book-page restoration strip, directly under the navbar and
+          aligned to the same content width. onBook opens the on-page modal. */}
       <div className="svc6 rev1-ribbon">
         <RestorationStrip onBook={() => setEmOpen(true)} sub="Water · Fire · Mold · 24/7" />
       </div>
 
-      {/* .voda-lp chrome: header + compact hero. */}
+      {/* Compact hero. */}
       <div className="voda-lp rev1">
-        <Header scrolled={scrolled} onBook={book} />
         <Hero />
       </div>
 

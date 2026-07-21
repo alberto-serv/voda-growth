@@ -22,18 +22,31 @@
 .rev1-root .svc6 { min-height: 0; }
 
 /* ---------- restoration strip block ---------- */
-.rev1-ribbon .emg-strip { padding-top: 14px; padding-bottom: 14px; }
+/* Sits directly under the navbar; align its card to the same 1120px content
+   container + 20px gutter the header/hero/reviews use, on a white backdrop so
+   it reads as part of the header. */
+.rev1-root .rev1-ribbon { background: #fff; border-bottom: 1px solid var(--line-2, #eceff4); }
+.rev1-ribbon .emg-strip { max-width: 1120px; padding: 12px 20px; }
+
+/* Zero the wrap's flex gap so the collapsed CTA leaves no space after the
+   Madison pill — the pill then sits flush at the 1120px content right edge,
+   aligned with the restoration card below it. */
+.voda-lp.rev1 .hdr .wrap { gap: 0; }
 
 /* ---------- header-on-scroll CTA (desktop only) ---------- */
+/* When hidden it must NOT reserve layout width, or it pushes the Madison pill
+   off the right edge and the navbar looks off-center. Collapse to zero width. */
 .voda-lp.rev1 .hdr-cta {
-  margin-left: 12px; height: 40px; padding: 0 16px; border-radius: var(--radius);
+  height: 40px; border-radius: var(--radius);
   background: var(--cyan); color: var(--navy); font-family: var(--font-outfit), "Outfit";
   font-weight: 700; font-size: 14px; white-space: nowrap; display: inline-flex;
   align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(3, 217, 229, .3);
-  opacity: 0; transform: translateY(-4px); pointer-events: none;
-  transition: opacity .2s ease, transform .2s ease;
+  overflow: hidden; max-width: 0; padding: 0; margin-left: 0; opacity: 0; pointer-events: none;
+  transition: max-width .28s ease, padding .28s ease, margin-left .28s ease, opacity .2s ease;
 }
-.voda-lp.rev1 .hdr-cta.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.voda-lp.rev1 .hdr-cta.show {
+  max-width: 340px; padding: 0 16px; margin-left: 12px; opacity: 1; pointer-events: auto;
+}
 .voda-lp.rev1 .hdr-cta:hover { color: var(--navy); }
 .voda-lp.rev1 .hdr-cta .sub { font-weight: 600; opacity: .72; font-size: 12.5px; }
 @media (max-width: 959px) { .voda-lp.rev1 .hdr-cta { display: none; } }
