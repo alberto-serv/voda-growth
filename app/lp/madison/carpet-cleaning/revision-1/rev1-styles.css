@@ -1,0 +1,116 @@
+/* ============================================================
+   Voda LP — Carpet × Madison — REVISION 1 styles.
+
+   Revision-1 mixes two scoped design systems on one page:
+   · `.voda-lp …` (lp-styles.css)      → header, hero, reviews, FAQ, footer
+   · `.svc6 …` (app/voda-design.css)   → the shared restoration strip + carpet
+                                          module (same components as the book page)
+   The two blocks are SIBLINGS under `.rev1-root`, never nested, because both
+   define `.hero` / `.stepper` / `.val` and nesting would cross-apply them.
+
+   This file styles: the neutral root + mobile cart bar, the compact-hero
+   overrides on the `.voda-lp` block, and the chrome around the shared `.svc6`
+   configurator block (kicker, single-column width, desktop-only card CTA).
+   ============================================================ */
+
+/* ---------- neutral root ---------- */
+.rev1-root { background: #fff; padding-bottom: 96px; }        /* clear the fixed cart bar */
+@media (min-width: 960px) { .rev1-root { padding-bottom: 0; } }
+
+/* `.svc6` is the book page's full-screen root (min-height:100vh). As embedded
+   content blocks here they must size to their content, not the viewport. */
+.rev1-root .svc6 { min-height: 0; }
+
+/* ---------- restoration strip block ---------- */
+.rev1-ribbon .emg-strip { padding-top: 14px; padding-bottom: 14px; }
+
+/* ---------- header-on-scroll CTA (desktop only) ---------- */
+.voda-lp.rev1 .hdr-cta {
+  margin-left: 12px; height: 40px; padding: 0 16px; border-radius: var(--radius);
+  background: var(--cyan); color: var(--navy); font-family: var(--font-outfit), "Outfit";
+  font-weight: 700; font-size: 14px; white-space: nowrap; display: inline-flex;
+  align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(3, 217, 229, .3);
+  opacity: 0; transform: translateY(-4px); pointer-events: none;
+  transition: opacity .2s ease, transform .2s ease;
+}
+.voda-lp.rev1 .hdr-cta.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.voda-lp.rev1 .hdr-cta:hover { color: var(--navy); }
+.voda-lp.rev1 .hdr-cta .sub { font-weight: 600; opacity: .72; font-size: 12.5px; }
+@media (max-width: 959px) { .voda-lp.rev1 .hdr-cta { display: none; } }
+
+/* ---------- M2 hero: compact band ---------- */
+/* Mobile: text-only band ~46vh so the product module is cut by the fold. */
+.voda-lp.rev1 .hero .wrap {
+  min-height: 46vh; padding-top: 20px; padding-bottom: 28px; justify-content: center;
+}
+.voda-lp.rev1 .hero .hero-bg { display: none; }        /* mobile: no LCP image */
+.voda-lp.rev1 .hero .eyebrow { display: none; }         /* cut on mobile for vertical space */
+.voda-lp.rev1 .hero .cta-wrap { display: none; }        /* mobile: cart bar is the only CTA */
+
+.voda-lp.rev1 .hero-inc { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+.voda-lp.rev1 .hero-inc li {
+  display: flex; align-items: center; gap: 9px; color: #e4ecf4; font-size: 14.5px; white-space: nowrap;
+}
+.voda-lp.rev1 .hero-inc .ck {
+  width: 19px; height: 19px; border-radius: 50%; flex: none; display: flex;
+  align-items: center; justify-content: center; background: rgba(3, 217, 229, .16);
+  color: var(--cyan); border: 1px solid rgba(3, 217, 229, .3);
+}
+.voda-lp.rev1 .hero .trust { flex-wrap: nowrap; gap: 8px; margin-top: 16px; font-size: 13px; }
+
+@media (min-width: 960px) {
+  .voda-lp.rev1 .hero .hero-bg { display: block; }
+  .voda-lp.rev1 .hero .eyebrow { display: inline-flex; margin-bottom: 14px; }
+  .voda-lp.rev1 .hero .cta-wrap { display: block; }
+  .voda-lp.rev1 .hero .wrap {
+    min-height: 66vh; max-height: 680px; padding-top: 40px; padding-bottom: 48px;
+    justify-content: flex-end;
+  }
+  .voda-lp.rev1 .hero-inc li { font-size: 16px; }
+}
+
+/* ---------- shared configurator block (single column, centered) ---------- */
+.rev1-config { padding: 48px 0; }
+.rev1-config-inner { max-width: 560px; margin: 0 auto; padding: 0 20px; }
+.rev1-kicker {
+  font-family: var(--font-outfit), "Outfit"; font-weight: 700; font-size: 12px;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--cyan-deep);
+  text-align: center; margin-bottom: 16px;
+}
+.rev1-escape { text-align: center; margin-top: 20px; }
+.rev1-escape a {
+  font-family: var(--font-outfit), "Outfit"; font-weight: 600; font-size: 14.5px;
+  color: var(--muted); text-decoration: none;
+}
+.rev1-escape a:hover { color: var(--cyan-deep); }
+
+/* In-card CTA is desktop-only; on mobile the cart bar commits. */
+.rev1-card-cta { margin-top: 4px; }
+.rev1-card-note { font-size: 12px; color: var(--faint); text-align: center; margin-top: 11px; }
+@media (max-width: 959px) { .rev1-card-cta { display: none; } }
+
+/* ---------- M6 local: plain-text area list ---------- */
+.voda-lp.rev1 .area-text { margin-top: 14px; color: var(--muted); font-size: 15.5px; line-height: 1.6; }
+
+/* ---------- mobile cart bar (always visible from load; only mobile CTA) ---------- */
+.cart-bar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 70;
+  background: rgba(255, 255, 255, .97); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  border-top: 1px solid #e3e8ef; box-shadow: 0 -6px 24px rgba(21, 38, 68, .14);
+  padding: 9px 14px calc(9px + env(safe-area-inset-bottom));
+  font-family: var(--font-outfit), "Outfit", system-ui, sans-serif;
+}
+.cart-bar .cb-sum {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  margin-bottom: 7px; font-size: 13.5px; color: #5b6675;
+}
+.cart-bar .cb-calc { font-weight: 500; }
+.cart-bar .cb-total { font-weight: 800; font-size: 19px; color: #152644; line-height: 1; }
+.cart-bar .cb-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 50px;
+  border: 0; border-radius: 10px; cursor: pointer; background: #03d9e5; color: #152644;
+  font-family: inherit; font-weight: 700; font-size: 15.5px; box-shadow: 0 6px 18px rgba(3, 217, 229, .3);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.cart-bar .cb-btn:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(3, 217, 229, .4); }
+@media (min-width: 960px) { .cart-bar { display: none; } }   /* web: no bottom bar */

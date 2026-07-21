@@ -42,6 +42,13 @@ import {
   type CarpetAddOn,
 } from "@/lib/carpet";
 import {
+  CarpetConfigurator,
+  carpetTotal,
+  carpetPricePerRoom,
+  type CarpetSel,
+} from "@/components/lp/carpet-configurator";
+import { RestorationStrip } from "@/components/lp/restoration-strip";
+import {
   rugModel,
   computeRugTotal,
   getRugLevelById,
@@ -343,60 +350,10 @@ const SVC_META: Record<string, { blurb: string; cadence?: string }> = {
   "healthy-home-bundle": { blurb: "Carpet, vents & upholstery — save 15%", cadence: "Best value" },
 };
 
-// services6 carpet pricing (mirrors /services4): the customer starts at the
-// base steam clean and ticks à-la-carte upgrades — no Bronze/Silver/Gold tiers.
-// The base is always quoted furnished (moveFurniture stays true); `vacant`
-// applies a flat per-booking discount instead of a per-room fee.
-type CarpetSel = { areas: number; addOnIds: string[]; moveFurniture?: boolean; vacant?: boolean };
-
-// The two add-ons offered on the carpet card, in the customer's language. Each
-// maps to the underlying priced add-ons in the carpet model.
-const CARPET_ADDONS: { id: string; name: string; addOnIds: string[]; detail: string }[] = [
-  {
-    id: "stain-removal",
-    name: "Stain removal",
-    addOnIds: ["s6-stain-removal"],
-    detail: "Stain Protection + Brush Pro + HEPA Pre-Vacuum",
-  },
-  {
-    id: "pet-odor",
-    name: "Pet odor removal",
-    addOnIds: ["s6-pet-odor-control"],
-    detail: "Filtration Line Removal + Pet Odor Removal",
-  },
-];
-
-// Per-area price of one add-on (sqft add-ons scale by room size; area add-ons
-// are a flat per-room amount).
-const carpetAddOnPricePerArea = (model: CarpetPricingModel, a: CarpetAddOn): number =>
-  a.unit === "sqft" ? a.price * model.sqftPerArea : a.price;
-
-const carpetAddOnActive = (sel: CarpetSel, addOnIds: string[]): boolean =>
-  addOnIds.every((id) => sel.addOnIds.includes(id));
-
-// Per-room price of a card add-on: the sum of the model add-ons behind it.
-const carpetAddOnsPricePerArea = (model: CarpetPricingModel, addOnIds: string[]): number =>
-  addOnIds.reduce((sum, id) => {
-    const a = model.addOns.find((x) => x.id === id);
-    return a ? sum + carpetAddOnPricePerArea(model, a) : sum;
-  }, 0);
-
-// Per-area price = base steam clean + every selected add-on.
-const carpetPricePerArea = (model: CarpetPricingModel, addOnIds: string[]): number =>
-  model.ratePerSqft * model.sqftPerArea +
-  model.addOns
-    .filter((a) => addOnIds.includes(a.id))
-    .reduce((sum, a) => sum + carpetAddOnPricePerArea(model, a), 0);
-
-// Per-room price. The base clean is quoted for a vacant room; "move furniture"
-// (furnished) adds the per-room surcharge back on.
-const carpetPricePerRoom = (model: CarpetPricingModel, sel: CarpetSel): number =>
-  carpetPricePerArea(model, sel.addOnIds) -
-  (sel.moveFurniture ? 0 : CARPET_FURNITURE_FEE_PER_AREA);
-
-// Carpet total = per-room price × rooms, less the flat vacant-room discount.
-const carpetTotal = (model: CarpetPricingModel, sel: CarpetSel): number =>
-  sel.areas * carpetPricePerRoom(model, sel) - s6VacantDiscount(sel);
+// services6 carpet pricing + the carpet product module now live in the shared
+// components/lp/carpet-configurator, so the book page and the Madison landing
+// pages render the same component. CarpetSel, carpetTotal, carpetPricePerRoom,
+// CARPET_ADDONS and the CarpetConfigurator are imported from there.
 
 export default function ServicesPage() {
   const router = useRouter();
@@ -473,10 +430,6 @@ export default function ServicesPage() {
   // Mobile bottom sheets for the emergency and bundle cards.
   const [emergencySheetOpen, setEmergencySheetOpen] = useState(false);
   const [bundleSheetOpen, setBundleSheetOpen] = useState(false);
-
-  // Which carpet add-on has its "more details" explainer expanded, if any.
-  const [openAddOnDetail, setOpenAddOnDetail] = useState<string | null>(null);
-
 
   // Default carpet selection: base clean (no add-ons) at the model's default
   // room count. Furnished (moveFurniture) is the base; vacancy is opt-in.
@@ -1398,186 +1351,44 @@ export default function ServicesPage() {
     if (!service?.carpetModel) return null;
     const sel = getCarpetSel(service);
     const total = carpetTotal(service.carpetModel, sel);
-    // Headline rate shown in the summary: the base per-room clean, before any
-    // add-ons or the vacant discount (those roll up into "+ extras").
-    const baseRate = carpetPricePerArea(service.carpetModel, []);
     const setSel = (next: CarpetSel) =>
       setCarpetSelection({ ...carpetSelection, [service.id]: next });
-    const setAreas = (n: number) => setSel({ ...sel, areas: Math.max(1, n) });
     const added = selectedServices.includes(service.id);
-    const roomWord = sel.areas === 1 ? "room" : "rooms";
 
-    // Marking the rooms vacant applies a flat per-booking discount (only when
-    // more than one room is booked): $50 with any add-on, $20 otherwise.
-    const vacant = !!sel.vacant;
-    // Applied to the total only when selected; the available amount (what the
-    // discount would be if ticked) is shown on the row from load so the saving
-    // is visible up front.
-    const vacantDiscount = s6VacantDiscount(sel);
-    const availableVacantDiscount = s6VacantDiscount({ ...sel, vacant: true });
-    const toggleVacant = () => setSel({ ...sel, vacant: !vacant });
-    // Any adjustment beyond base × rooms (add-ons or vacant discount) is
-    // summarised as "+ extras" next to the per-room rate.
-    const hasExtras = sel.addOnIds.length > 0 || vacantDiscount > 0;
+    // The book page's own CTA: add/remove the pre-selected service inline.
+    const footer = added ? (
+      <div className="hero-added">
+        <span className="ha-txt">
+          <Check className="h-4 w-4" strokeWidth={3} /> Added to your booking
+        </span>
+        <button
+          type="button"
+          className="ha-remove"
+          onClick={() => handleServiceToggle(service.id)}
+        >
+          Remove
+        </button>
+      </div>
+    ) : (
+      <button
+        type="button"
+        className="btn btn-cta hero-book"
+        onClick={() => handleServiceToggle(service.id)}
+      >
+        + Add · {formatPrice(total)}
+      </button>
+    );
 
     return (
-      <section className="hero">
-        <div className="hero-band">
-          <div className="badge-row">
-            <span className="badge-most">
-              <Sparkles className="h-3 w-3" strokeWidth={2.5} /> Most booked
-            </span>
-          </div>
-          <h2 className="hero-title">{service.name}</h2>
-          {/* The "1 room = 150 sq ft" disclaimer belongs with the room stepper
-              below, where it's actually load-bearing — not in the pitch. */}
-          <p className="hero-desc">{service.description}</p>
-        </div>
-
-        {/* Pricing summary: room stepper on one side, live total + per-room
-            rate on the other. Row on desktop, stacked with a divider on mobile. */}
-        <div className="price-eq-wrap">
-          <div className="price-card">
-            <div className="pc-rooms">
-              <span className="pc-label">How many rooms?</span>
-              <div className="stepper">
-                <button
-                  type="button"
-                  onClick={() => setAreas(sel.areas - 1)}
-                  disabled={sel.areas <= 1}
-                  aria-label="Fewer rooms"
-                >
-                  –
-                </button>
-                <span className="val">
-                  {sel.areas} {roomWord}
-                </span>
-                <button type="button" onClick={() => setAreas(sel.areas + 1)} aria-label="More rooms">
-                  +
-                </button>
-              </div>
-            </div>
-            <div className="pc-summary">
-              <span className="pc-total">{formatPrice(total)}</span>
-              <span className="pc-rate">
-                {sel.areas} × <b>{formatPrice(baseRate)}/room</b>
-                {hasExtras && <span className="pc-extras"> + extras</span>}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="hero-body">
-
-          {/* Vacant rooms — no furniture to move, so a flat discount applies
-              (2+ rooms only). */}
-          <button
-            type="button"
-            className={`opt-row${vacant ? " on" : ""}`}
-            aria-pressed={vacant}
-            onClick={toggleVacant}
-          >
-            <span className="opt-box">
-              {vacant && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
-            </span>
-            <span className="opt-main">
-              <span className="t">My rooms are vacant</span>
-              <span className="s">Get a discount if there's no furniture to move</span>
-            </span>
-            {availableVacantDiscount > 0 ? (
-              <span className="opt-price disc">−{formatPrice(availableVacantDiscount)}</span>
-            ) : (
-              vacant && <span className="opt-price note">2+ rooms</span>
-            )}
-          </button>
-
-          {/* Add-ons — the customer ticks a need; we price it into the total. */}
-          <div className="upgrades">
-            {CARPET_ADDONS.map((addOn) => {
-              const active = carpetAddOnActive(sel, addOn.addOnIds);
-              const perRoom = carpetAddOnsPricePerArea(service.carpetModel!, addOn.addOnIds);
-              const detailOpen = openAddOnDetail === addOn.id;
-              return (
-                <div key={addOn.id} className={`opt-wrap${detailOpen ? " det-open" : ""}`}>
-                  <button
-                    type="button"
-                    className={`opt-row${active ? " on" : ""}`}
-                    aria-pressed={active}
-                    onClick={() =>
-                      setSel({
-                        ...sel,
-                        addOnIds: active
-                          ? sel.addOnIds.filter((id) => !addOn.addOnIds.includes(id))
-                          : [
-                              ...sel.addOnIds,
-                              ...addOn.addOnIds.filter((id) => !sel.addOnIds.includes(id)),
-                            ],
-                      })
-                    }
-                  >
-                    <span className="opt-box">
-                      {active && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
-                    </span>
-                    <span className="opt-main">
-                      <span className="t">
-                        Add {addOn.name}
-                        <span
-                          role="button"
-                          tabIndex={0}
-                          className="opt-info"
-                          aria-label={`What is ${addOn.name}?`}
-                          aria-expanded={detailOpen}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setOpenAddOnDetail(detailOpen ? null : addOn.id);
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              setOpenAddOnDetail(detailOpen ? null : addOn.id);
-                            }
-                          }}
-                        >
-                          <Info className="h-[15px] w-[15px]" strokeWidth={2.25} />
-                        </span>
-                      </span>
-                    </span>
-                    <span className="opt-price">
-                      +{formatPrice(perRoom)}
-                      <span className="per">/room</span>
-                    </span>
-                  </button>
-                  {detailOpen && <p className="opt-detail">{addOn.detail}</p>}
-                </div>
-              );
-            })}
-          </div>
-
-          {added ? (
-            <div className="hero-added">
-              <span className="ha-txt">
-                <Check className="h-4 w-4" strokeWidth={3} /> Added to your booking
-              </span>
-              <button
-                type="button"
-                className="ha-remove"
-                onClick={() => handleServiceToggle(service.id)}
-              >
-                Remove
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              className="btn btn-cta hero-book"
-              onClick={() => handleServiceToggle(service.id)}
-            >
-              + Add · {formatPrice(total)}
-            </button>
-          )}
-        </div>
-      </section>
+      <CarpetConfigurator
+        model={service.carpetModel}
+        name={service.name}
+        description={service.description}
+        sel={sel}
+        onChange={setSel}
+        showMostBooked
+        footer={footer}
+      />
     );
   };
 
@@ -1820,23 +1631,7 @@ export default function ServicesPage() {
         <div className="pane">
           {/* Restoration card — the whole row opens the popup,
               where the customer picks a damage type and books (or calls). */}
-          <div className="emg-strip">
-            <button
-              type="button"
-              className="emg-card"
-              onClick={() => openEmergency()}
-              aria-label="Restoration — call or book online"
-            >
-              <span className="emg-ic">
-                <PhoneCall className="h-[19px] w-[19px]" />
-              </span>
-              <span className="emg-txt">
-                <b>Restoration</b>
-                <span className="emg-sub">Water · fire · mold — 24/7</span>
-              </span>
-              <span className="emg-book">Book</span>
-            </button>
-          </div>
+          <RestorationStrip onBook={() => openEmergency()} />
 
         <div className="conv-wrap">
           <h1 className="sr-only">
