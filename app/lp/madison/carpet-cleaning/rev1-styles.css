@@ -22,16 +22,18 @@
 .rev1-root .svc6 { min-height: 0; }
 
 /* ---------- restoration strip block ---------- */
-/* Sits directly under the navbar; align its card to the same 1120px content
-   container + 20px gutter the header/hero/reviews use, on a white backdrop so
-   it reads as part of the header. */
+/* Sits directly under the navbar on a white backdrop so it reads as part of
+   the header. Its card is aligned to the SAME 900px container + 24px gutter as
+   the "Book your cleaning" module below, so the restoration card's edges meet
+   the carpet card's edges (matching the services6 book page). */
 .rev1-root .rev1-ribbon { background: #fff; border-bottom: 1px solid var(--line-2, #eceff4); }
-.rev1-ribbon .emg-strip { max-width: 1120px; padding: 12px 20px; }
+.rev1-ribbon .emg-strip { max-width: 900px; padding: 12px 24px; }
 
-/* Zero the wrap's flex gap so the collapsed CTA leaves no space after the
-   Madison pill — the pill then sits flush at the 1120px content right edge,
-   aligned with the restoration card below it. */
-.voda-lp.rev1 .hdr .wrap { gap: 0; }
+/* Navbar spans full width like the services6 book page: content sits in a
+   wide (~1280px) container with a 16px gutter instead of the 1120px content
+   column the rest of the page uses. gap:0 so the collapsed scroll CTA leaves
+   no space after the Madison pill, which then sits flush at the right gutter. */
+.voda-lp.rev1 .hdr .wrap { max-width: 1280px; padding: 0 16px; gap: 0; }
 
 /* ---------- header-on-scroll CTA (desktop only) ---------- */
 /* When hidden it must NOT reserve layout width, or it pushes the Madison pill
@@ -51,14 +53,14 @@
 .voda-lp.rev1 .hdr-cta .sub { font-weight: 600; opacity: .72; font-size: 12.5px; }
 @media (max-width: 959px) { .voda-lp.rev1 .hdr-cta { display: none; } }
 
-/* ---------- M2 hero: compact band ---------- */
-/* Mobile: text-only band ~46vh so the product module is cut by the fold. */
+/* ---------- M2 hero: compact band with right-side proof image ---------- */
+/* Solid navy band (no background photo). Mobile: text only, ~46vh, so the
+   product module below peeks above the fold as the scroll cue. */
 .voda-lp.rev1 .hero .wrap {
-  min-height: 46vh; padding-top: 20px; padding-bottom: 28px; justify-content: center;
+  min-height: 46vh; padding-top: 10px; padding-bottom: 28px; justify-content: center;
 }
-.voda-lp.rev1 .hero .hero-bg { display: none; }        /* mobile: no LCP image */
-.voda-lp.rev1 .hero .eyebrow { display: none; }         /* cut on mobile for vertical space */
-.voda-lp.rev1 .hero .cta-wrap { display: none; }        /* mobile: cart bar is the only CTA */
+.voda-lp.rev1 .hero .rev1-hero-media { display: none; }  /* mobile: text-only band */
+.voda-lp.rev1 .hero .cta-wrap { display: none; }         /* mobile: cart bar is the only CTA */
 
 .voda-lp.rev1 .hero-inc { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
 .voda-lp.rev1 .hero-inc li {
@@ -72,24 +74,39 @@
 .voda-lp.rev1 .hero .trust { flex-wrap: nowrap; gap: 8px; margin-top: 16px; font-size: 13px; }
 
 @media (min-width: 960px) {
-  .voda-lp.rev1 .hero .hero-bg { display: block; }
-  .voda-lp.rev1 .hero .eyebrow { display: inline-flex; margin-bottom: 14px; }
   .voda-lp.rev1 .hero .cta-wrap { display: block; }
+  /* Desktop: compact ~42vh band, copy on the left, proof image on the right. */
   .voda-lp.rev1 .hero .wrap {
-    min-height: 66vh; max-height: 680px; padding-top: 40px; padding-bottom: 48px;
-    justify-content: flex-end;
+    min-height: 42vh; max-height: 42vh; padding-top: 28px; padding-bottom: 28px;
+    justify-content: center;
+  }
+  .voda-lp.rev1 .hero .rev1-hero-grid {
+    display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 48px;
+  }
+  .voda-lp.rev1 .hero .rev1-hero-copy { min-width: 0; justify-self: start; }
+  /* Selector includes `.hero` to match the mobile display:none rule's
+     specificity, so this desktop override actually wins. The image height is
+     pinned to the band's content height (42vh minus the 28px top/bottom
+     padding) so it matches the hero height; width follows the portrait aspect. */
+  .voda-lp.rev1 .hero .rev1-hero-media {
+    display: block; align-self: center;
+    border-radius: 14px; overflow: hidden; box-shadow: 0 12px 32px rgba(3, 12, 30, .34);
+  }
+  .voda-lp.rev1 .hero .rev1-hero-media img {
+    height: calc(42vh - 56px); width: auto; max-width: none; display: block;
   }
   .voda-lp.rev1 .hero-inc li { font-size: 16px; }
 }
 
-/* ---------- shared configurator block (single column, centered) ---------- */
+/* ---------- shared configurator block ---------- */
+/* Match the services6 book page's "Book your cleaning" module: same 900px
+   content width and the same .conv-head title markup (styled by
+   `.svc6 .conv-head` in voda-design.css, so it needs no styles here). */
 .rev1-config { padding: 48px 0; }
-.rev1-config-inner { max-width: 560px; margin: 0 auto; padding: 0 20px; }
-.rev1-kicker {
-  font-family: var(--font-outfit), "Outfit"; font-weight: 700; font-size: 12px;
-  letter-spacing: .08em; text-transform: uppercase; color: var(--cyan-deep);
-  text-align: center; margin-bottom: 16px;
-}
+/* width:100% is required: the .svc6 parent is a flex column, and auto side
+   margins on a flex item disable stretch — without it the block collapses to
+   its content width (~548px) instead of filling to the 900px cap. */
+.rev1-config-inner { width: 100%; max-width: 900px; margin: 0 auto; padding: 0 24px; }
 .rev1-escape { text-align: center; margin-top: 20px; }
 .rev1-escape a {
   font-family: var(--font-outfit), "Outfit"; font-weight: 600; font-size: 14.5px;

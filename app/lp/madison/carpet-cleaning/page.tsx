@@ -1,25 +1,37 @@
 "use client";
 import "../lp-styles.css";
+import "@/app/voda-design.css";
+import "./rev1-styles.css";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { RestorationRibbon } from "../restoration-ribbon";
+import { AlertTriangle, X, Phone } from "lucide-react";
 import { business } from "@/lib/business";
 import { formatPrice } from "@/lib/format";
+import { carpetModel, s6VacantDiscount } from "@/lib/carpet";
 import {
-  carpetModel,
-  computeCarpetTotal,
-  computeCarpetAddOnsPricePerArea,
-  carpetAddOnPricePerArea,
-  s6VacantDiscount,
-} from "@/lib/carpet";
+  CarpetConfigurator,
+  carpetTotal,
+  carpetPricePerArea,
+  type CarpetSel,
+} from "@/components/lp/carpet-configurator";
+import { RestorationStrip } from "@/components/lp/restoration-strip";
 
 /* ============================================================
    Voda Product-Led Landing Page — Carpet × Madison.
-   Ported from the "Voda Landing - Carpet Madison" design.
-   Pricing + checkout handoff are driven by lib/carpet using the
-   same services6 semantics as the homepage, so the price the
-   visitor configures here is the exact price they see at
-   /estimate/customer5.
+
+   The live carpet landing page (promoted from the former /revision-1 draft,
+   which has been removed). Its `.rev1-*` class names are kept as-is to avoid a
+   churny rename — they're just the page's local namespace now.
+
+   Per the "extract to shared components" decision, the restoration strip and
+   the carpet product module are now the SAME components the book page renders
+   (components/lp/restoration-strip + carpet-configurator). Those are styled by
+   `.svc6 …` in app/voda-design.css, so they live in `.svc6` blocks that are
+   SIBLINGS of the `.voda-lp` blocks — never nested, because both design systems
+   define `.hero` / `.stepper` / `.val` and nesting would cross-apply them.
+
+   Pricing + checkout still run through lib/carpet with the services6 semantics,
+   so the configured price matches /estimate/customer5 exactly.
    ============================================================ */
 
 /* ---- Location (NAP from lib/business; brand-constant display copy) ---- */
@@ -32,10 +44,10 @@ const loc = {
   phoneRaw: business.businessPhone,
   email: business.email,
   gbpUrl: "https://www.google.com/searchviewer/10?svid=CAwSHRIbCgNwdnESFENnMHZaeTh4TVd4NWVubDJOWFEzGAo&sa=X&ved=2ahUKEwiwgs3L1eGVAxURJzQIHZEGEGgQ_74PegoIAggACAAIDBAC",
-  reviewRating: 4.9,
-  reviewCount: 218,
+  reviewRating: 4.9, // LAUNCH-GATE: confirm real rating before traffic
+  reviewCount: 218, // LAUNCH-GATE: confirm real count before traffic
   sinceYear: 2019, // NEEDS-SOURCING: confirm at launch
-  licenseLine: "Licensed & insured — WI #CR-XXXXX", // NEEDS-SOURCING
+  licenseLine: "Licensed & insured · WI #CR-XXXXX", // LAUNCH-GATE: real license number
   hours: "Mon–Sat, 7AM–6PM",
   nextSlot: "Today, 4:30 PM",
   nextSlotShort: "Today 4:30 PM",
@@ -44,35 +56,41 @@ const loc = {
 const brand = {
   name: business.brandName,
   ctaLabel: "See available times",
-  microcopy: "Book in 60 seconds · No payment until service day · Free rescheduling.",
-  restoration: { label: "Restoration", line: "Water · Fire · Mold — 24/7", href: "/?emergency=1" },
+  footerLegal: "© 2026 Voda Cleaning & Restoration. All rights reserved.",
+  // LAUNCH-GATE: guarantee copy below is placeholder/invented, not a confirmed
+  // Voda policy. Confirm the real terms (free re-clean, 7-day window) with the
+  // client before any traffic. Do not launch an unverified guarantee.
   guarantee: {
     title: "The Voda Clean Guarantee",
-    body: "If you're not fully happy with the results, we'll re-clean the area free. No arguments, no fine print — that's our promise on every job.",
+    body: "If you're not fully happy with the results, we'll re-clean the area free. No arguments, no fine print, that's our promise on every job.",
   },
   faqQuestions: [
-    "How is the price calculated — will my final price match what I see here?",
+    "How is the price calculated · will my final price match what I see here?",
     "How long will the service take?",
     "Do I need to be home during the service?",
     "How should I prepare before the crew arrives?",
     "Are the products and methods safe for kids and pets?",
     "What if I'm not happy with the results?",
   ],
-  footerLegal: "© 2026 Voda Cleaning & Restoration. All rights reserved.",
 };
 
 const product = {
-  slug: "carpet-cleaning",
   name: "Eco-Friendly Carpet Cleaning",
   h1: `Carpet Cleaning in ${loc.city}, ${loc.state}`,
-  subhead: "Deep steam cleaning with non-toxic solutions — upfront per-room pricing, no upsell games.",
+  // Card description for the configurator — deliberately does NOT repeat
+  // "non-toxic" (in the hero bullets) or "no upsell games" (removed): dedupe.
+  cardDesc: "Deep steam cleaning that lifts set-in dirt and leaves carpets dry in hours.",
+  // Hero "includes" bullets replace the paragraph subhead (review item 2).
   includes: [
-    "Pre-treatment of high-traffic areas & spots",
-    "Deep steam extraction, non-toxic pet-safe solutions",
-    "Deodorize + fast-dry finish",
+    "Pre-treatment of high-traffic areas and spots",
+    "Non-toxic, pet-safe steam extraction",
+    "Deodorize and fast-dry finish",
   ],
+  // LAUNCH-GATE: FAQ answers are drafted, not sourced. Durations, drying times,
+  // prep steps, "we'll text when wrapping up" and the 7-day window all need
+  // validation by Voda ops before launch.
   faqAnswers: [
-    "The price you see is your quote for the rooms and add-ons you select. On rare occasions (heavy soiling or oversized rooms beyond 150 sq ft) the tech may suggest an adjustment on-site — always confirmed with you before any work begins.",
+    "The price you see is your quote for the rooms and add-ons you select. On rare occasions (heavy soiling or oversized rooms beyond 150 sq ft) the tech may suggest an adjustment on-site, always confirmed with you before any work begins.",
     "Most 3–5 room jobs take 1.5–2.5 hours. Add-ons like stain or pet-odor treatment add a little time. Carpets are damp-dry on departure and fully dry within 4–6 hours.",
     "You don't have to be, as long as we can access the home. Most customers meet the crew at the start, then go about their day. We'll text when we're wrapping up.",
     "Please vacuum if you can, pick up small items and valuables off the floor, secure pets in a separate room, and leave a parking spot near the entrance. We move light furniture; we ask that you clear breakables.",
@@ -81,27 +99,17 @@ const product = {
   ],
 };
 
+// LAUNCH-GATE: review quotes are curated placeholders. Em dashes stripped.
 const reviews = [
-  { quote: "Booked in two minutes and they arrived right in the window. Our carpets look brand new — no lingering smell, dry by dinner.", name: "Sarah M.", area: "Middleton", stars: 5 },
+  { quote: "Booked in two minutes and they arrived right in the window. Our carpets look brand new, no lingering smell, dry by dinner.", name: "Sarah M.", area: "Middleton", stars: 5 },
   { quote: "The pet-odor treatment actually worked where two other companies failed. Signed up for the recurring plan on the spot.", name: "Priya R.", area: "Fitchburg", stars: 5 },
   { quote: "Upfront per-room pricing, no surprise upsells, and the techs were spotless and professional start to finish.", name: "James T.", area: "Sun Prairie", stars: 5 },
 ];
 
-const flags = { show_restoration_ribbon: true, show_pricing: true };
+const UNIT_PRICE = carpetPricePerArea(carpetModel, []); // base per room, for the cart-bar line
+const DEFAULT_ROOMS = carpetModel.defaultAreas;
 
-/* ---- Carpet pricing bridge to lib/carpet (services6 à-la-carte model) ----
-   The base steam clean is quoted furnished (moveFurniture stays true); the
-   "vacant" toggle applies the flat s6 per-booking discount, matching the
-   homepage. Each landing add-on maps to a priced carpet-model add-on id. */
-const UNIT_PRICE = computeCarpetAddOnsPricePerArea(carpetModel, []); // base per room
-const MIN_QTY = carpetModel.defaultAreas;
-
-const LP_ADDONS = [
-  { id: "stain", modelId: "s6-stain-removal", name: "Stain removal", desc: "Targeted treatment for set-in spots" },
-  { id: "petodor", modelId: "s6-pet-odor-control", name: "Pet odor removal", desc: "Natural oxygen deep-odor neutralizer" },
-] as const;
-
-/* ---- icons (lucide-style) ---- */
+/* ---- icons (lucide-style, for the LP chrome) ---- */
 const ICONS: Record<string, string> = {
   check: "M20 6 9 17l-5-5",
   clock: "M12 6v6l4 2|M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z",
@@ -111,7 +119,6 @@ const ICONS: Record<string, string> = {
   phone: "M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z",
   mail: "M4 4h16v16H4z|M22 6l-10 7L2 6",
   chevron: "M6 9l6 6 6-6",
-  lock: "M5 11h14v10H5z|M8 11V7a4 4 0 0 1 8 0v4",
   droplet: "M12 2.5S5 10 5 14.5a7 7 0 0 0 14 0C19 10 12 2.5 12 2.5z",
   external: "M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6|M15 3h6v6|M10 14 21 3",
 };
@@ -140,181 +147,119 @@ function scrollToId(id: string) {
   if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 64, behavior: "smooth" });
 }
 
-/* ===== M0 restoration ribbon + on-page emergency popup =====
-   Shared with the other-services LP — see ../restoration-ribbon. */
+/* ===== on-page emergency popup (opened by the shared RestorationStrip) ===== */
+type EmergencyDamage = "Water" | "Fire" | "Mold" | "Storm";
 
-/* ===== M1 micro-header ===== */
-function Header() {
-  return (
-    <header className="hdr">
-      <div className="wrap">
-        <Logo />
-        <span className="loc"><Icon name="pin" size={14} />{loc.city}, {loc.state}</span>
-      </div>
-    </header>
-  );
-}
-
-/* ===== M2 hero ===== */
-function Hero() {
-  return (
-    <section className="hero" id="hero">
-      <div className="hero-bg">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/home-background.jpeg" alt="Freshly cleaned carpeted living room" />
-      </div>
-      <div className="scrim" />
-      <div className="wrap">
-        <span className="eyebrow"><Icon name="droplet" size={13} />Eco-friendly · Non-toxic</span>
-        <h1>{product.h1}</h1>
-        <p className="subhead">{product.subhead}</p>
-        <div className="trust">
-          <span className="b"><Stars size={15} /><span className="rating">{loc.reviewRating}</span> Google ({loc.reviewCount})</span>
-          <span className="tsep" />
-          <span className="b"><Icon name="shield" size={14} />Licensed &amp; Insured</span>
-          <span className="tsep" />
-          <span className="b">Serving {loc.city} since {loc.sinceYear}</span>
-        </div>
-        <div className="cta-wrap">
-          <button className="btn btn-cta" onClick={() => scrollToId("configure")}>
-            {brand.ctaLabel} <span className="sub">· Next: {loc.nextSlot}</span>
-          </button>
-        </div>
-        <p className="microcopy">{brand.microcopy}</p>
-      </div>
-    </section>
-  );
-}
-
-/* ===== M3 configurator (wired to checkout) ===== */
-function Configurator() {
+function EmergencyModal({ onClose }: { onClose: () => void }) {
   const router = useRouter();
-  const [qty, setQty] = useState(MIN_QTY);
-  const [vacant, setVacant] = useState(false);
-  const [addons, setAddons] = useState<Record<string, boolean>>({});
-  const toggleAddon = (id: string) => setAddons((a) => ({ ...a, [id]: !a[id] }));
+  const [damage, setDamage] = useState<EmergencyDamage | null>(null);
 
-  const activeAddons = LP_ADDONS.filter((a) => addons[a.id]);
-  const addOnIds = activeAddons.map((a) => a.modelId);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [onClose]);
 
-  // Same shape + math the homepage (services6) hands to checkout.
-  const sel = { areas: qty, addOnIds, moveFurniture: true, vacant };
-  const discount = s6VacantDiscount({ areas: qty, addOnIds, vacant: true });
-  const total = computeCarpetTotal(carpetModel, sel) - (vacant ? discount : 0);
-
-  const calcParts = [`${qty} room${qty !== 1 ? "s" : ""} × ${formatPrice(UNIT_PRICE)}`];
-  activeAddons.forEach((a) => calcParts.push(`+ ${a.name}`));
-  if (vacant) calcParts.push(`vacant − ${formatPrice(discount)}`);
-
-  // Hand the configured cart to the shared checkout, mirroring the homepage's
-  // handleContinueToScheduling exactly, then jump to the scheduling step.
-  const handleBook = () => {
+  const startEmergencyCheckout = () => {
+    if (!damage) return;
     const stored = JSON.parse(localStorage.getItem("estimateData") || "{}");
     localStorage.setItem(
       "estimateData",
       JSON.stringify({
         ...stored,
-        services: {
-          selectedServices: ["carpet-cleaning"],
-          serviceQuantities: {},
-          variantQuantities: {},
-          carpetSelection: { "carpet-cleaning": sel },
-          rugSelection: {},
-          bundleUnits: {},
-          serviceFrequency: { "carpet-cleaning": "none" },
-          totalPrice: total,
-        },
         checkoutFlow: "services6",
-        emergency: undefined,
+        services: { selectedServices: [], totalPrice: 0 },
+        emergency: { damageType: damage },
         commercial: undefined,
-        skipPayment: undefined,
+        noService: undefined,
+        skipPayment: true,
       }),
     );
     router.push("/estimate/customer5");
   };
 
   return (
-    <section className="sec" id="configure">
-      <div className="wrap">
-        <div className="cfg-layout">
-          <div className="cfg-intro">
-            <div className="sec-kicker">Build your quote</div>
-            <h2>Upfront pricing, no upsell games.</h2>
-            <p className="sec-head sh-sub" style={{ marginTop: 8 }}>Pick your rooms and add-ons — see your real price before you book. You only pay on service day.</p>
+    <div className="voda-lp">
+      <div className="em-overlay" role="dialog" aria-modal="true" aria-label="Emergency & restoration help" onClick={onClose}>
+        <div className="em-modal" onClick={(e) => e.stopPropagation()}>
+          <div className="em-top">
+            <span className="em-badge"><AlertTriangle size={21} /></span>
+            <div>
+              <div className="em-title">Emergency &amp; Restoration</div>
+              <div className="em-sub">Water · Fire · Mold · 24/7 rapid response in {loc.city}.</div>
+            </div>
+            <button className="em-close" onClick={onClose} aria-label="Close"><X size={18} /></button>
           </div>
+          <div className="em-lbl">Select damage type</div>
+          <div className="em-chips">
+            {(["Water", "Fire", "Mold", "Storm"] as const).map((type) => (
+              <button key={type} className={"em-chip" + (damage === type ? " on" : "")} onClick={() => setDamage(type)} aria-pressed={damage === type}>
+                {type}
+              </button>
+            ))}
+          </div>
+          <div className="em-actions">
+            <button className="em-book" disabled={!damage} onClick={startEmergencyCheckout}>
+              Request priority help
+            </button>
+            <a className="em-call" href={"tel:" + loc.phoneRaw} aria-label={"Call now · " + loc.phone}>
+              <Phone size={20} />
+            </a>
+          </div>
+          <div className="em-note">No payment online — our team scopes the job and responds fast.</div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-          <div className="cfg">
-            <div className="cfg-top">
-              <div className="p-name">{product.name}</div>
-              <div className="p-desc">{product.subhead}</div>
-              <ul className="cfg-inc">
-                {product.includes.map((inc, i) => (
-                  <li key={i}><span className="ck"><Icon name="check" size={12} /></span>{inc}</li>
-                ))}
-              </ul>
-            </div>
+/* ===== M1 micro-header with desktop scroll CTA ===== */
+function Header({ scrolled, onBook }: { scrolled: boolean; onBook: () => void }) {
+  return (
+    <header className="hdr">
+      <div className="wrap">
+        <Logo />
+        <span className="loc"><Icon name="pin" size={14} />{loc.city}, {loc.state}</span>
+        {/* Desktop only: appears once the hero scrolls out of view. */}
+        <button className={"hdr-cta" + (scrolled ? " show" : "")} onClick={onBook}>
+          {brand.ctaLabel} <span className="sub">· {loc.nextSlotShort}</span>
+        </button>
+      </div>
+    </header>
+  );
+}
 
-            <div className="cfg-body">
-              <div className="cfg-lbl">How many rooms?</div>
-              <div className="qty-row">
-                <div>
-                  <div className="stepper">
-                    <button onClick={() => setQty((q) => Math.max(MIN_QTY, q - 1))} disabled={qty <= MIN_QTY} aria-label="fewer rooms">–</button>
-                    <span className="val">{qty}</span>
-                    <button onClick={() => setQty((q) => q + 1)} aria-label="more rooms">+</button>
-                  </div>
-                  <div className="qty-unit">Min. {MIN_QTY} rooms · 1 room = up to 150 sq ft.</div>
-                </div>
-                <div className="unit-price">
-                  <div className="up-amt">{formatPrice(UNIT_PRICE)}</div>
-                  <div className="up-per">per room</div>
-                </div>
-              </div>
-
-              {flags.show_pricing && (
-                <div className={"incentive" + (vacant ? " on" : "")} onClick={() => setVacant((v) => !v)} role="button" aria-pressed={vacant}>
-                  <div className="txt">
-                    <div className="it-name">My rooms are vacant (no furniture to move)</div>
-                    <div className="it-save">Save {formatPrice(discount)} — nothing to move</div>
-                  </div>
-                  <span className="switch" />
-                </div>
-              )}
-
-              <div className="addons">
-                <div className="cfg-lbl">Add-ons <span style={{ textTransform: "none", letterSpacing: 0, color: "var(--muted)", fontWeight: 500 }}>· optional, per room</span></div>
-                {LP_ADDONS.map((a) => (
-                  <div key={a.id} className={"addon" + (addons[a.id] ? " on" : "")} onClick={() => toggleAddon(a.id)} role="button" aria-pressed={!!addons[a.id]}>
-                    <span className="box">{addons[a.id] && <Icon name="check" size={13} />}</span>
-                    <div className="txt">
-                      <div className="a-name">{a.name}</div>
-                      <div className="a-desc">{a.desc}</div>
-                    </div>
-                    <div className="a-price">+{formatPrice(carpetAddOnPricePerArea(carpetModel, a.modelId))}/room</div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="cfg-total">
-                <div>
-                  <div className="t-k">Your price</div>
-                  <div className="t-calc">{calcParts.join("  ")}</div>
-                </div>
-                <div className="t-v">{formatPrice(total)}</div>
-              </div>
-
-              <div className="cfg-cta-wrap">
-                <button className="btn btn-cta" onClick={handleBook}>
-                  {brand.ctaLabel} <span className="sub">· Next: {loc.nextSlot}</span>
-                </button>
-                <div className="cfg-note"><Icon name="lock" size={13} style={{ color: "var(--faint)" }} />No payment until service day · Free rescheduling</div>
-              </div>
-            </div>
+/* ===== M2 hero (compact) ===== */
+function Hero() {
+  return (
+    <section className="hero" id="hero">
+      <div className="wrap rev1-hero-grid">
+        <div className="rev1-hero-copy">
+          <h1>{product.h1}</h1>
+          <ul className="hero-inc">
+            {product.includes.map((inc, i) => (
+              <li key={i}><span className="ck"><Icon name="check" size={11} /></span>{inc}</li>
+            ))}
+          </ul>
+          <div className="trust">
+            <span className="b"><Stars size={14} /><span className="rating">{loc.reviewRating}</span> Google ({loc.reviewCount})</span>
+          </div>
+          {/* Desktop CTA only (mobile uses the cart bar). Anchors to the module. */}
+          <div className="cta-wrap">
+            <button className="btn btn-cta" onClick={() => scrollToId("configure")}>
+              {brand.ctaLabel} <span className="sub">· Next: {loc.nextSlot}</span>
+            </button>
           </div>
         </div>
-
-        {/* M3b escape hatch — the other Voda services in Madison */}
-        <div className="escape"><a href="/lp/madison/other-services">Need a different service? →</a></div>
+        {/* Before/after proof image, right column on desktop (hidden on mobile). */}
+        <div className="rev1-hero-media">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/services/voda-before-after.jpeg" alt="Before and after: a stained carpet cleaned to like-new by Voda" />
+        </div>
       </div>
     </section>
   );
@@ -371,6 +316,7 @@ function LocalProof() {
       <div className="wrap">
         <div className="local-grid">
           <div className="local-photo">
+            {/* NEEDS-RIGHTS: confirm source/usage of this truck photo with the client. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/voda-trucks.webp" alt="Voda Cleaning &amp; Restoration branded vans parked at a Madison home" />
           </div>
@@ -378,9 +324,8 @@ function LocalProof() {
             <div className="sec-kicker">Proudly local</div>
             <h2 className="sec-head" style={{ fontSize: 29, fontWeight: 800 }}>Serving {loc.city} &amp; greater Dane County</h2>
             <p style={{ color: "var(--muted)", fontSize: 16, marginTop: 8 }}>Locally staffed crews, background-checked and fully insured. Same-week availability across the area:</p>
-            <div className="area-list">
-              {loc.serviceArea.map((a) => <span className="area-chip" key={a}><Icon name="pin" size={13} />{a}</span>)}
-            </div>
+            {/* Plain-text middot list replaces the area chips. */}
+            <p className="area-text">{loc.serviceArea.join(" · ")}</p>
             <a className="gbp-link" href={loc.gbpUrl} target="_blank" rel="noopener noreferrer"><Icon name="external" size={15} />See our Google Business Profile &amp; reviews</a>
           </div>
         </div>
@@ -397,7 +342,7 @@ function FAQ() {
       <div className="wrap">
         <div className="sec-head" style={{ textAlign: "center" }}>
           <div className="sec-kicker">Good to know</div>
-          <h2>Questions, answered</h2>
+          <h2>Frequently Asked Questions</h2>
         </div>
         <div className="faq">
           {brand.faqQuestions.map((q, i) => (
@@ -416,44 +361,20 @@ function FAQ() {
   );
 }
 
-/* ===== M8 final cta ===== */
-function FinalCTA() {
+/* ===== M8 final cta (desktop end-cap) ===== */
+function FinalCTA({ onBook }: { onBook: () => void }) {
   return (
     <section className="sec sec-navy">
       <div className="wrap final">
         <h2>Ready for carpets that look new?</h2>
-        <p>Pick a time that works — most {loc.city} bookings are next-day.</p>
+        <p>Pick a time that works. Most {loc.city} bookings are next-day.</p>
         <div className="cta-wrap">
-          <button className="btn btn-cta" onClick={() => scrollToId("configure")}>
+          <button className="btn btn-cta" onClick={onBook}>
             {brand.ctaLabel} <span className="sub">· Next: {loc.nextSlot}</span>
           </button>
-          <p className="microcopy">{brand.microcopy}</p>
         </div>
       </div>
     </section>
-  );
-}
-
-/* ===== M9 sticky mobile CTA ===== */
-function StickyCTA() {
-  const [show, setShow] = useState(false);
-  useEffect(() => {
-    const cfg = document.getElementById("configure");
-    const onScroll = () => {
-      if (!cfg) return;
-      const past = cfg.getBoundingClientRect().bottom < window.innerHeight * 0.4;
-      setShow(past);
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-  return (
-    <div className={"sticky-cta" + (show ? " show" : "")}>
-      <button className="btn btn-cta" onClick={() => scrollToId("configure")}>
-        {brand.ctaLabel} · {loc.nextSlotShort}
-      </button>
-    </div>
   );
 }
 
@@ -486,6 +407,7 @@ function LpFooter() {
       <div className="foot-bottom">
         <div className="wrap">
           <span>{brand.footerLegal}</span>
+          {/* LAUNCH-GATE: point these at real Privacy / Terms pages. */}
           <span className="foot-links"><a href="#">Privacy</a><a href="#">Terms</a></span>
         </div>
       </div>
@@ -493,20 +415,139 @@ function LpFooter() {
   );
 }
 
-export default function LandingPage() {
+export default function CarpetCleaningLanding() {
+  const router = useRouter();
+
+  // Cart state lives here so the shared configurator, the mobile cart bar and
+  // the desktop header CTA all read/commit the same live cart.
+  const [sel, setSel] = useState<CarpetSel>({
+    areas: DEFAULT_ROOMS,
+    addOnIds: [],
+    moveFurniture: true,
+    vacant: false,
+  });
+  const total = carpetTotal(carpetModel, sel);
+  const hasExtras = sel.addOnIds.length > 0 || s6VacantDiscount(sel) > 0;
+
+  const [emOpen, setEmOpen] = useState(false);
+
+  // Hand the configured cart to the shared checkout (mirrors the homepage's
+  // handleContinueToScheduling), then jump to the scheduling step.
+  const book = () => {
+    const stored = JSON.parse(localStorage.getItem("estimateData") || "{}");
+    localStorage.setItem(
+      "estimateData",
+      JSON.stringify({
+        ...stored,
+        services: {
+          selectedServices: ["carpet-cleaning"],
+          serviceQuantities: {},
+          variantQuantities: {},
+          carpetSelection: { "carpet-cleaning": sel },
+          rugSelection: {},
+          bundleUnits: {},
+          serviceFrequency: { "carpet-cleaning": "none" },
+          totalPrice: total,
+        },
+        checkoutFlow: "services6",
+        emergency: undefined,
+        commercial: undefined,
+        skipPayment: undefined,
+      }),
+    );
+    router.push("/estimate/customer5");
+  };
+
+  // Desktop header CTA reveals once the hero has scrolled out of view.
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const hero = document.getElementById("hero");
+    const onScroll = () => {
+      if (!hero) return;
+      setScrolled(hero.getBoundingClientRect().bottom < 60);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // The book-page module's footer, adapted for the LP: a desktop-only
+  // "See available times" button (mobile commits via the cart bar).
+  const cardFooter = (
+    <div className="rev1-card-cta">
+      <button type="button" className="btn btn-cta hero-book" onClick={book}>
+        {brand.ctaLabel} · Next: {loc.nextSlot}
+      </button>
+      <div className="rev1-card-note">No payment until service day · Free rescheduling</div>
+    </div>
+  );
+
   return (
-    <div className="voda-lp">
-      <RestorationRibbon />
-      <Header />
-      <Hero />
-      <Configurator />
-      <Reviews />
-      <Guarantee />
-      <LocalProof />
-      <FAQ />
-      <FinalCTA />
-      <LpFooter />
-      <StickyCTA />
+    <div className="rev1-root">
+      {/* Navbar first. */}
+      <div className="voda-lp rev1">
+        <Header scrolled={scrolled} onBook={book} />
+      </div>
+
+      {/* Shared book-page restoration strip, directly under the navbar and
+          aligned to the same content width. onBook opens the on-page modal. */}
+      <div className="svc6 rev1-ribbon">
+        <RestorationStrip onBook={() => setEmOpen(true)} sub="Water · Fire · Mold · 24/7" />
+      </div>
+
+      {/* Compact hero. */}
+      <div className="voda-lp rev1">
+        <Hero />
+      </div>
+
+      {/* Shared book-page product module in its own .svc6 block (single column). */}
+      <section className="svc6 rev1-config" id="configure">
+        <div className="rev1-config-inner">
+          {/* Same title + width as the services6 book page's "Book your cleaning"
+              module — reuse the .svc6 .conv-head markup so styling matches exactly. */}
+          <div className="conv-head">
+            <div className="head-text">
+              <h1>Book your cleaning</h1>
+            </div>
+          </div>
+          <CarpetConfigurator
+            model={carpetModel}
+            name={product.name}
+            description={product.cardDesc}
+            sel={sel}
+            onChange={setSel}
+            footer={cardFooter}
+          />
+          <div className="rev1-escape">
+            <a href="/lp/madison/other-services">Need a different service? →</a>
+          </div>
+        </div>
+      </section>
+
+      {/* .voda-lp chrome: proof + trust + FAQ + footer. */}
+      <div className="voda-lp rev1">
+        <Reviews />
+        <Guarantee />
+        <LocalProof />
+        <FAQ />
+        <FinalCTA onBook={book} />
+        <LpFooter />
+      </div>
+
+      {/* Mobile cart bar = the only mobile CTA, live-bound to the cart. */}
+      <div className="cart-bar">
+        <div className="cb-sum">
+          <span className="cb-calc">
+            {sel.areas} room{sel.areas !== 1 ? "s" : ""} × {formatPrice(UNIT_PRICE)}{hasExtras ? " + extras" : ""}
+          </span>
+          <span className="cb-total">{formatPrice(total)}</span>
+        </div>
+        <button type="button" className="cb-btn" onClick={book}>
+          {brand.ctaLabel} · Next: {loc.nextSlotShort}
+        </button>
+      </div>
+
+      {emOpen && <EmergencyModal onClose={() => setEmOpen(false)} />}
     </div>
   );
 }
