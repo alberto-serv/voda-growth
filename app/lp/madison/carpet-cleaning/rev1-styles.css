@@ -14,8 +14,32 @@
    ============================================================ */
 
 /* ---------- neutral root ---------- */
+/* ONE content column for the whole page. The page mixes two design systems plus
+   a wide navbar, and each shipped its own container width — the navbar at
+   1280/16, the `.voda-lp` sections at 1120/20, the `.svc6` module at 900/24 and
+   the FAQ at 760. That put four different left edges on one page (96 / 180 /
+   294 / 340 at a 1440px viewport), reading as a staircase down the left side.
+   Every container below now derives from these two vars, so the logo, hero H1,
+   restoration card, "Book your cleaning", the product card, every section
+   heading, the FAQ and the footer all share one left and right edge. */
+.rev1-root { --rev1-maxw: 1000px; --rev1-gutter: 24px; }
 .rev1-root { background: #fff; padding-bottom: 96px; }        /* clear the fixed cart bar */
 @media (min-width: 960px) { .rev1-root { padding-bottom: 0; } }
+
+/* The `.voda-lp` sections (hero, reviews, guarantee, local, FAQ, final, footer)
+   onto the shared column. Longhand padding so it overrides the shorthands in
+   lp-styles.css without needing to restate their vertical values. */
+.voda-lp.rev1 .wrap {
+  max-width: var(--rev1-maxw);
+  padding-left: var(--rev1-gutter);
+  padding-right: var(--rev1-gutter);
+}
+/* Footer wraps set `padding` shorthand at higher specificity — restate. */
+.voda-lp.rev1 .foot .wrap { padding: 44px var(--rev1-gutter) 28px; }
+.voda-lp.rev1 .foot-bottom .wrap { padding: 16px var(--rev1-gutter); }
+/* FAQ had its own 760px inner cap, a 4th edge. It now fills the column; the
+   answer body keeps its own 64ch measure so line length stays readable. */
+.voda-lp.rev1 .faq { max-width: none; }
 
 /* `.svc6` is the book page's full-screen root (min-height:100vh). As embedded
    content blocks here they must size to their content, not the viewport. */
@@ -23,17 +47,15 @@
 
 /* ---------- restoration strip block ---------- */
 /* Sits directly under the navbar on a white backdrop so it reads as part of
-   the header. Its card is aligned to the SAME 900px container + 24px gutter as
-   the "Book your cleaning" module below, so the restoration card's edges meet
-   the carpet card's edges (matching the services6 book page). */
+   the header. On the shared page column, so the restoration card's edges meet
+   the carpet card's edges below it. */
 .rev1-root .rev1-ribbon { background: #fff; border-bottom: 1px solid var(--line-2, #eceff4); }
-.rev1-ribbon .emg-strip { max-width: 900px; padding: 12px 24px; }
+.rev1-ribbon .emg-strip { max-width: var(--rev1-maxw); padding: 12px var(--rev1-gutter); }
 
-/* Navbar spans full width like the services6 book page: content sits in a
-   wide (~1280px) container with a 16px gutter instead of the 1120px content
-   column the rest of the page uses. gap:0 so the collapsed scroll CTA leaves
+/* Navbar on the shared column too — the logo's left edge lines up with the hero
+   H1 and every section heading below. gap:0 so the collapsed scroll CTA leaves
    no space after the Madison pill, which then sits flush at the right gutter. */
-.voda-lp.rev1 .hdr .wrap { max-width: 1280px; padding: 0 16px; gap: 0; }
+.voda-lp.rev1 .hdr .wrap { max-width: var(--rev1-maxw); padding: 0 var(--rev1-gutter); gap: 0; }
 
 /* ---------- header-on-scroll CTA (desktop only) ---------- */
 /* When hidden it must NOT reserve layout width, or it pushes the Madison pill
@@ -101,14 +123,15 @@
 }
 
 /* ---------- shared configurator block ---------- */
-/* Match the services6 book page's "Book your cleaning" module: same 900px
-   content width and the same .conv-head title markup (styled by
-   `.svc6 .conv-head` in voda-design.css, so it needs no styles here). */
+/* Reuses the services6 book page's .conv-head title markup (styled by
+   `.svc6 .conv-head` in voda-design.css, so it needs no styles here), but sits
+   on the LP's shared column rather than the book page's own 900px cap — so the
+   "Book your cleaning" heading and the card align with the sections around it. */
 .rev1-config { padding: 48px 0; }
 /* width:100% is required: the .svc6 parent is a flex column, and auto side
    margins on a flex item disable stretch — without it the block collapses to
-   its content width (~548px) instead of filling to the 900px cap. */
-.rev1-config-inner { width: 100%; max-width: 900px; margin: 0 auto; padding: 0 24px; }
+   its content width (~548px) instead of filling to the column cap. */
+.rev1-config-inner { width: 100%; max-width: var(--rev1-maxw); margin: 0 auto; padding: 0 var(--rev1-gutter); }
 .rev1-escape { text-align: center; margin-top: 20px; }
 .rev1-escape a {
   font-family: var(--font-outfit), "Outfit"; font-weight: 600; font-size: 14.5px;

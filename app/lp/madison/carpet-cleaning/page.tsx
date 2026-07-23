@@ -503,8 +503,9 @@ export default function CarpetCleaningLanding() {
       {/* Shared book-page product module in its own .svc6 block (single column). */}
       <section className="svc6 rev1-config" id="configure">
         <div className="rev1-config-inner">
-          {/* Same title + width as the services6 book page's "Book your cleaning"
-              module — reuse the .svc6 .conv-head markup so styling matches exactly. */}
+          {/* Same title markup as the services6 book page's "Book your cleaning"
+              module — reuse .svc6 .conv-head so styling matches exactly. Width
+              comes from the LP's shared content column (see rev1-styles.css). */}
           <div className="conv-head">
             <div className="head-text">
               <h1>Book your cleaning</h1>
