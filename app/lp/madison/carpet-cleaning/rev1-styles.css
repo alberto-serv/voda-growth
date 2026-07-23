@@ -121,12 +121,14 @@
 .rev1-card-note { font-size: 12px; color: var(--faint); text-align: center; margin-top: 11px; }
 @media (max-width: 959px) { .rev1-card-cta { display: none; } }
 
-/* ---------- section bands: match the grey book module ---------- */
-/* Guarantee + FAQ are the only plain `.sec` bands (white by default). Tint them
-   the same --bg-soft grey as the `.sec-alt` bands and the `.svc6` book module,
-   so the whole lower page reads as one continuous grey. Excludes `.sec-alt`
-   (already grey) and `.sec-navy` (FinalCTA) whose backgrounds must win. */
-.voda-lp.rev1 .sec:not(.sec-alt):not(.sec-navy) { background: var(--bg-soft); }
+/* ---------- section bands: grey/white alternation ---------- */
+/* Let the plain `.sec` bands (Guarantee, FAQ) stay white so the lower page
+   alternates grey → white → grey → white → navy down the stack:
+     product module (.svc6, grey) → Reviews (.sec-alt, grey) → Guarantee (white)
+     → LocalProof (.sec-alt, grey) → FAQ (white) → FinalCTA (.sec-navy).
+   Reviews deliberately keeps the same grey as the product module directly above
+   it, so there's NO transition across the product → review boundary; the first
+   grey/white change lands one section lower, at Guarantee. */
 
 /* ---------- M6 local: plain-text area list ---------- */
 .voda-lp.rev1 .area-text { margin-top: 14px; color: var(--muted); font-size: 15.5px; line-height: 1.6; }
