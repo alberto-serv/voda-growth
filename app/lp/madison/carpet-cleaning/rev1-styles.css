@@ -122,13 +122,14 @@
 @media (max-width: 959px) { .rev1-card-cta { display: none; } }
 
 /* ---------- section bands: grey/white alternation ---------- */
-/* Let the plain `.sec` bands (Guarantee, FAQ) stay white so the lower page
-   alternates grey → white → grey → white → navy down the stack:
-     product module (.svc6, grey) → Reviews (.sec-alt, grey) → Guarantee (white)
-     → LocalProof (.sec-alt, grey) → FAQ (white) → FinalCTA (.sec-navy).
-   Reviews deliberately keeps the same grey as the product module directly above
-   it, so there's NO transition across the product → review boundary; the first
-   grey/white change lands one section lower, at Guarantee. */
+/* The product module (.svc6) above is grey, so the bands below must INVERT the
+   lp default (which starts grey at Reviews) to get a change right at the
+   product → review boundary. Flip both band types so the lower page alternates:
+     product module (.svc6, grey) → Reviews (white) → Guarantee (grey)
+     → LocalProof (white) → FAQ (grey) → FinalCTA (.sec-navy).
+   `.sec-navy` (FinalCTA) keeps its navy fill. */
+.voda-lp.rev1 .sec-alt { background: #fff; }
+.voda-lp.rev1 .sec:not(.sec-alt):not(.sec-navy) { background: var(--bg-soft); }
 
 /* ---------- M6 local: plain-text area list ---------- */
 .voda-lp.rev1 .area-text { margin-top: 14px; color: var(--muted); font-size: 15.5px; line-height: 1.6; }
