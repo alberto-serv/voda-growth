@@ -56,8 +56,10 @@
 /* ---------- M2 hero: compact band with right-side proof image ---------- */
 /* Solid navy band (no background photo). Mobile: text only, ~46vh, so the
    product module below peeks above the fold as the scroll cue. */
+/* Mobile: size the band to its content (no tall min-height) with tight
+   padding, so the product module peeks higher above the fold. */
 .voda-lp.rev1 .hero .wrap {
-  min-height: 46vh; padding-top: 10px; padding-bottom: 28px; justify-content: center;
+  min-height: 0; padding-top: 16px; padding-bottom: 20px; justify-content: center;
 }
 .voda-lp.rev1 .hero .rev1-hero-media { display: none; }  /* mobile: text-only band */
 .voda-lp.rev1 .hero .cta-wrap { display: none; }         /* mobile: cart bar is the only CTA */
@@ -118,6 +120,13 @@
 .rev1-card-cta { margin-top: 4px; }
 .rev1-card-note { font-size: 12px; color: var(--faint); text-align: center; margin-top: 11px; }
 @media (max-width: 959px) { .rev1-card-cta { display: none; } }
+
+/* ---------- section bands: match the grey book module ---------- */
+/* Guarantee + FAQ are the only plain `.sec` bands (white by default). Tint them
+   the same --bg-soft grey as the `.sec-alt` bands and the `.svc6` book module,
+   so the whole lower page reads as one continuous grey. Excludes `.sec-alt`
+   (already grey) and `.sec-navy` (FinalCTA) whose backgrounds must win. */
+.voda-lp.rev1 .sec:not(.sec-alt):not(.sec-navy) { background: var(--bg-soft); }
 
 /* ---------- M6 local: plain-text area list ---------- */
 .voda-lp.rev1 .area-text { margin-top: 14px; color: var(--muted); font-size: 15.5px; line-height: 1.6; }
